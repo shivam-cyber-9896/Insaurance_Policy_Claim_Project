@@ -16,9 +16,9 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(CustomExceptions.ResourceNotFoundException.class)
+    @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiErrorResponseDto> handleResourceNotFound(
-            CustomExceptions.ResourceNotFoundException ex, WebRequest request) {
+            ResourceNotFoundException ex, WebRequest request) {
         ApiErrorResponseDto error = ApiErrorResponseDto.builder()
                 .timestamp(LocalDateTime.now())
                 .statusCode(HttpStatus.NOT_FOUND.value())

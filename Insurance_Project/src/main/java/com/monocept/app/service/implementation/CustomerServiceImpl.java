@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import com.monocept.app.dto.CustomerRequestDto;
 import com.monocept.app.dto.CustomerResponseDto;
 import com.monocept.app.exception.CustomExceptions.DuplicateResourceException;
-import com.monocept.app.exception.CustomExceptions.ResourceNotFoundException;
+import com.monocept.app.exception.ResourceNotFoundException;
 import com.monocept.app.model.Customer;
 import com.monocept.app.model.User;
 import com.monocept.app.repository.CustomerRepository;

@@ -11,7 +11,7 @@ import com.monocept.app.dto.UserRequestDto;
 import com.monocept.app.dto.UserResponseDto;
 import com.monocept.app.service.AuthService;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import org.springframework.web.bind.annotation.RequestBody;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 

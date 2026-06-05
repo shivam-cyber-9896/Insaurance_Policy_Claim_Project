@@ -10,10 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.monocept.app.dto.CustomerRequestDto;
 import com.monocept.app.dto.CustomerResponseDto;
-import com.monocept.app.dto.CustomerResponseDto;
 import com.monocept.app.service.CustomerService;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import org.springframework.web.bind.annotation.RequestBody;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 

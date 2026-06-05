@@ -13,7 +13,7 @@ import com.monocept.app.dto.PolicyPurchaseRequestDto;
 import com.monocept.app.dto.PolicyResponseDto;
 import com.monocept.app.service.PolicyService;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import org.springframework.web.bind.annotation.RequestBody;
 import lombok.RequiredArgsConstructor;
 
 @RestController
