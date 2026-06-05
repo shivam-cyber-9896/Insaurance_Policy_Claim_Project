@@ -1,40 +1,61 @@
 package com.monocept.app.controller;
 
-import com.monocept.app.dto.ApiResponseDto;
-import com.monocept.app.dto.LoginRequestDto;
-import com.monocept.app.dto.LoginResponseDto;
-import com.monocept.app.dto.RegisterRequestDto;
-import com.monocept.app.service.AuthService;
-
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.monocept.app.dto.UserResponseDto;
+import com.monocept.app.dto.UserStatusRequestDto;
+import com.monocept.app.service.UserService;
+
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/api/users")
+@RequiredArgsConstructor
 public class UserController {
 
-    private final AuthService authService;
+    private final UserService userService;
 
-    @Autowired
-    public UserController(AuthService authService) {
-        this.authService = authService;
+    @GetMapping
+    public ResponseEntity<Page<UserResponseDto>>
+    getAllUsers(Pageable pageable) {
+
+        return ResponseEntity.ok(
+                userService.getAllUsers(pageable));
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<ApiResponseDto<String>> registerCustomer(@Valid @RequestBody RegisterRequestDto request) {
-        String result = authService.registerCustomer(request);
-        return new ResponseEntity<>(ApiResponseDto.success(result, result), HttpStatus.CREATED);
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponseDto>
+    getUserById(@PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                userService.getUserById(id));
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<ApiResponseDto<LoginResponseDto>> login(@Valid @RequestBody LoginRequestDto request) {
-        LoginResponseDto result = authService.login(request);
-        return ResponseEntity.ok(ApiResponseDto.success("Login successful", result));
+    @PutMapping("/{id}/activate")
+    public ResponseEntity<UserResponseDto>
+    activateUser(
+            @PathVariable Long id,
+            @RequestBody UserStatusRequestDto dto) {
+
+        return ResponseEntity.ok(
+                userService.activateUser(id, dto));
+    }
+
+    @PutMapping("/{id}/deactivate")
+    public ResponseEntity<UserResponseDto>
+    deactivateUser(
+            @PathVariable Long id,
+            @RequestBody UserStatusRequestDto dto) {
+
+        return ResponseEntity.ok(
+                userService.deactivateUser(id, dto));
     }
 }

@@ -83,4 +83,9 @@ public class Customer {
     
     @OneToMany(mappedBy = "customer")
     private List<Policy> policies;
+
+	public static Object builder() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

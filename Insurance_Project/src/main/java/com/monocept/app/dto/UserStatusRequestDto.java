@@ -1,7 +1,8 @@
 package com.monocept.app.dto;
 
-import com.monocept.app.enums.Role;
 
+
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,12 +12,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginResponseDto {
-	private String token;
+public class UserStatusRequestDto {
 
-    private String email;
-
-    private String fullName;
-
-    private Role role;
+    @NotBlank(message = "Reason is required")
+    private String reason;
 }

@@ -8,13 +8,12 @@ import com.monocept.app.enums.PolicyStatus;
 import com.monocept.app.model.Customer;
 import com.monocept.app.model.Policy;
 
-public interface PolicyRepository extends JpaRepository<Policy, Long> {
+public interface PolicyRepository
+        extends JpaRepository<Policy, Long> {
 
-	boolean existsByPolicyNumber(
-            String policyNumber);
-	
-	List<Policy> findByCustomer(
-            Customer customer);
+    boolean existsByPolicyNumber(String policyNumber);
+
+    List<Policy> findByCustomer(Customer customer);
 
     List<Policy> findByPolicyStatus(
             PolicyStatus policyStatus);

@@ -9,7 +9,5 @@ import com.monocept.app.model.ClaimStatusHistory;
 
 public interface ClaimStatusHistoryRepository extends JpaRepository<ClaimStatusHistory, Long> {
 
-	List<ClaimStatusHistory>
-    findByClaimOrderByUpdatedDateDesc(
-            Claim claim);
+	List<ClaimStatusHistory> findByClaimOrderByUpdatedDateDesc(Claim claim);
 }

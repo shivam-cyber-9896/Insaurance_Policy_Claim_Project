@@ -9,9 +9,7 @@ import com.monocept.app.model.PremiumPayment;
 
 public interface PremiumPaymentRepository extends JpaRepository<PremiumPayment, Long> {
 
-	boolean existsByTransactionReference(
-            String transactionReference);
+	boolean existsByTransactionReference(String transactionReference);
 
-    List<PremiumPayment> findByPolicy(
-            Policy policy);
+	List<PremiumPayment> findByPolicyId(Long policyId);
 }
