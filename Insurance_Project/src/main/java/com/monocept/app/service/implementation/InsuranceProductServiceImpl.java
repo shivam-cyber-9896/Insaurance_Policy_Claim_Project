@@ -52,7 +52,7 @@ public class InsuranceProductServiceImpl implements InsuranceProductService {
 
 		InsuranceProduct product = findProductById(id);
 
-		if (productRepository.existsByProductNameAndProductIdNot(dto.getProductName(), id)) {
+		if (productRepository.existsByProductNameAndIdNot(dto.getProductName(), id)) {
 
 			log.warn("Duplicate product name found: {}", dto.getProductName());
 

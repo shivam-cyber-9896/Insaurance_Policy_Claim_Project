@@ -10,7 +10,7 @@ public interface InsuranceProductRepository extends JpaRepository<InsuranceProdu
 
 	boolean existsByProductName(String productName);
 
-    List<InsuranceProduct> findByActiveTrue();
+	boolean existsByProductNameAndIdNot(String productName, Long id);
 
-	boolean existsByProductNameAndProductIdNot(String productName, Long id);
+	List<InsuranceProduct> findByActiveTrue();
 }

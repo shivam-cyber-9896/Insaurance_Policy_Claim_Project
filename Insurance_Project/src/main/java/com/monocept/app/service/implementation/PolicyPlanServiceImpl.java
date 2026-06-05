@@ -98,7 +98,7 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 	public List<PlanResponseDto> getPlansByProduct(Long productId) {
 
 	    return planRepository
-	            .findByInsuranceProductProductId(productId)
+	            .findByInsuranceProductId(productId)
 	            .stream()
 	            .map(this::convertToDto)
 	            .toList();

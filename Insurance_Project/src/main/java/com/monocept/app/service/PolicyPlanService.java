@@ -18,7 +18,7 @@ public interface PolicyPlanService {
 
     PlanResponseDto getPlanById(Long id);
 
-    List<PlanResponseDto> getPlansByProduct(Long productId);
+    List<PlanResponseDto> getPlansByProduct(Long Id);
 
     Page<PlanResponseDto> getAllPlans(Pageable pageable);
 }
