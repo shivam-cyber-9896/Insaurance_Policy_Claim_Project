@@ -1,5 +1,7 @@
 package com.monocept.app.controller;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,10 +31,22 @@ public class CustomerController {
 		return ResponseEntity.ok(customerService.createProfile(dto));
 	}
 
+	@GetMapping("/profile")
+	public ResponseEntity<CustomerResponseDto> getMyProfile() {
+
+		return ResponseEntity.ok(customerService.getMyProfile());
+	}
+
 	@GetMapping("/{id}")
 	public ResponseEntity<CustomerResponseDto> getCustomer(@PathVariable Long id) {
 
 		return ResponseEntity.ok(customerService.getCustomerById(id));
+	}
+
+	@GetMapping
+	public ResponseEntity<Page<CustomerResponseDto>> getAllCustomers(Pageable pageable) {
+
+		return ResponseEntity.ok(customerService.getAllCustomers(pageable));
 	}
 
 	@PutMapping("/{id}")

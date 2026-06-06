@@ -1,6 +1,5 @@
 package com.monocept.app.controller;
 
-
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -23,39 +22,32 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping
-    public ResponseEntity<PaymentResponseDto>
-    recordPayment(
-            @Valid
-            @RequestBody PaymentRequestDto dto) {
+    public ResponseEntity<PaymentResponseDto> recordPayment(@Valid @RequestBody PaymentRequestDto dto) {
 
-        return ResponseEntity.ok(
-                paymentService.recordPayment(dto));
+        return ResponseEntity.ok(paymentService.recordPayment(dto));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PaymentResponseDto>
-    getPaymentById(
-            @PathVariable Long id) {
+    public ResponseEntity<PaymentResponseDto> getPaymentById(@PathVariable Long id) {
 
-        return ResponseEntity.ok(
-                paymentService.getPaymentById(id));
+        return ResponseEntity.ok(paymentService.getPaymentById(id));
     }
 
     @GetMapping
-    public ResponseEntity<Page<PaymentResponseDto>>
-    getAllPayments(
-            Pageable pageable) {
+    public ResponseEntity<Page<PaymentResponseDto>> getAllPayments(Pageable pageable) {
 
-        return ResponseEntity.ok(
-                paymentService.getAllPayments(pageable));
+        return ResponseEntity.ok(paymentService.getAllPayments(pageable));
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<Page<PaymentResponseDto>> getMyPayments(Pageable pageable) {
+
+        return ResponseEntity.ok(paymentService.getMyPayments(pageable));
     }
 
     @GetMapping("/policy/{policyId}")
-    public ResponseEntity<List<PaymentResponseDto>>
-    getPaymentsByPolicy(
-            @PathVariable Long policyId) {
+    public ResponseEntity<List<PaymentResponseDto>> getPaymentsByPolicy(@PathVariable Long policyId) {
 
-        return ResponseEntity.ok(
-                paymentService.getPaymentsByPolicy(policyId));
+        return ResponseEntity.ok(paymentService.getPaymentsByPolicy(policyId));
     }
 }

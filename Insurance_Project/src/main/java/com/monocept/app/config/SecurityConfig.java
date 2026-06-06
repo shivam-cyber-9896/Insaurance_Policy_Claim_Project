@@ -37,16 +37,17 @@ public class SecurityConfig {
 
 						.requestMatchers("/api/auth/**").permitAll()
 
+						.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products/**", "/api/plans/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
 						.requestMatchers("/api/products/**", "/api/plans/**").hasRole("ADMIN")
 
 						.requestMatchers("/api/users/**").hasRole("ADMIN")
 
-						.requestMatchers("/api/claims/*/review").hasRole("AGENT")
+						.requestMatchers("/api/claims/{id}/review").hasRole("AGENT")
 
-						.requestMatchers("/api/claims/*/decision").hasRole("ADMIN")
+						.requestMatchers("/api/claims/{id}/decision").hasRole("ADMIN")
 
-						.requestMatchers("/api/customers/**", "/api/policies/**", "/api/payments/**")
-						.hasAnyRole("CUSTOMER", "ADMIN")
+						.requestMatchers("/api/customers/**", "/api/policies/**", "/api/payments/**", "/api/claims/**", "/api/claim-history/**")
+						.hasAnyRole("CUSTOMER", "ADMIN", "AGENT")
 
 						.anyRequest().authenticated())
 				

@@ -14,6 +14,8 @@ import com.monocept.app.dto.UserStatusRequestDto;
 import com.monocept.app.service.UserService;
 
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PostMapping;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -22,6 +24,11 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
 
     private final UserService userService;
+
+    @PostMapping("/agent")
+    public ResponseEntity<UserResponseDto> createAgent(@Valid @RequestBody com.monocept.app.dto.UserRequestDto dto) {
+        return ResponseEntity.ok(userService.createAgent(dto));
+    }
 
     @GetMapping
     public ResponseEntity<Page<UserResponseDto>>

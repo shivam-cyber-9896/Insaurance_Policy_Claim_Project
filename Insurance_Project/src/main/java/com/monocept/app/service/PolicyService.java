@@ -21,5 +21,7 @@ public interface PolicyService {
 
 	Page<PolicyResponseDto> getAllPolicies(Pageable pageable);
 
+	Page<PolicyResponseDto> getMyPolicies(Pageable pageable);
+
 	
 }

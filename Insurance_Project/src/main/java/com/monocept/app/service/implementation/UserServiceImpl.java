@@ -24,6 +24,7 @@ public class UserServiceImpl implements UserService {
 
 	private final UserRepository userRepository;
 	private final ModelMapper modelMapper;
+	private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
 	@Override
 	public Page<UserResponseDto> getAllUsers(Pageable pageable) {
@@ -88,7 +89,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public UserResponseDto createAgent(UserResponseDto dto) {
+	public UserResponseDto createAgent(UserRequestDto dto) {
 		log.info("Creating agent");
 
 		if (userRepository.existsByMail(dto.getEmail())) {
@@ -97,7 +98,8 @@ public class UserServiceImpl implements UserService {
 		}
 
 		User user = modelMapper.map(dto, User.class);
-
+		user.setPassword(passwordEncoder.encode(dto.getPassword()));
+		user.setRole(com.monocept.app.enums.Role.AGENT);
 		user.setActive(true);
 
 		User savedUser = userRepository.save(user);

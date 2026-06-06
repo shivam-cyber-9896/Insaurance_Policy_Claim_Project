@@ -36,6 +36,10 @@ public class AuthServiceImpl implements AuthService {
 
 		log.info("Registering user");
 
+		if (dto.getRole() != null && dto.getRole() != com.monocept.app.enums.Role.CUSTOMER) {
+			throw new com.monocept.app.exception.InvalidOperationException("Public registration is allowed only for customers");
+		}
+
 		if (userRepository.existsByMail(dto.getEmail())) {
 
 			throw new DuplicateResourceException("Email already exists");
@@ -44,7 +48,7 @@ public class AuthServiceImpl implements AuthService {
 		User user = modelMapper.map(dto, User.class);
 
 		user.setPassword(passwordEncoder.encode(dto.getPassword()));
-
+		user.setRole(com.monocept.app.enums.Role.CUSTOMER);
 		user.setActive(true);
 
 		User savedUser = userRepository.save(user);

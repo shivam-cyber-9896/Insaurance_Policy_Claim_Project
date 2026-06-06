@@ -15,5 +15,5 @@ public interface UserService {
 
     UserResponseDto deactivateUser(Long id, UserStatusRequestDto dto);
 
-    UserResponseDto createAgent(UserResponseDto dto);
+    UserResponseDto createAgent(com.monocept.app.dto.UserRequestDto dto);
 }

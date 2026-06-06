@@ -19,4 +19,6 @@ public interface ClaimService {
 	ClaimResponseDto getClaimById(Long id);
 
 	Page<ClaimResponseDto> getAllClaims(Pageable pageable);
+
+	Page<ClaimResponseDto> getMyClaims(Pageable pageable);
 }

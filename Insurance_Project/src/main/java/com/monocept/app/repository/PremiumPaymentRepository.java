@@ -12,4 +12,6 @@ public interface PremiumPaymentRepository extends JpaRepository<PremiumPayment, 
 	boolean existsByTransactionReference(String transactionReference);
 
 	List<PremiumPayment> findByPolicyId(Long policyId);
+
+	org.springframework.data.domain.Page<PremiumPayment> findByPolicyCustomer(com.monocept.app.model.Customer customer, org.springframework.data.domain.Pageable pageable);
 }

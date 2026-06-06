@@ -48,4 +48,10 @@ public class ProductController {
 
 		return ResponseEntity.ok(productService.updateProduct(id, dto));
 	}
+
+	@PutMapping("/{id}/deactivate")
+	public ResponseEntity<ProductResponseDto> deactivateProduct(@PathVariable Long id) {
+
+		return ResponseEntity.ok(productService.deactivateProduct(id));
+	}
 }

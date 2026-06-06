@@ -71,6 +71,34 @@
 			"name": "Users",
 			"item": [
 				{
+					"name": "Create Agent Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fullName\": \"Agent Smith\",\n    \"email\": \"agent.smith@insurance.com\",\n    \"password\": \"Agent@12345\",\n    \"mobileNumber\": \"9876543210\",\n    \"role\": \"AGENT\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/agent",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"agent"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get All Users",
 					"request": {
 						"method": "GET",
@@ -281,6 +309,26 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Deactivate Product",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/products/1/deactivate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"products",
+								"1",
+								"deactivate"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -360,6 +408,54 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Update Plan",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"productId\": 1,\n    \"planName\": \"Gold Life Shield Plus\",\n    \"coverageAmount\": 6000000.00,\n    \"premiumAmount\": 15000.00,\n    \"premiumType\": \"ANNUAL\",\n    \"duration\": 25,\n    \"termsAndConditions\": \"Updated terms and conditions.\",\n    \"active\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/plans/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"plans",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deactivate Plan",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/plans/1/deactivate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"plans",
+								"1",
+								"deactivate"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -407,6 +503,53 @@
 								"api",
 								"customers",
 								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/customers/profile",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"customers",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Customers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/customers?page=0&size=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"customers"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
 							]
 						}
 					},
@@ -474,6 +617,34 @@
 					"response": []
 				},
 				{
+					"name": "Issue Policy",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": 3,\n    \"planId\": 1,\n    \"startDate\": \"2026-07-01\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/policies/issue",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"policies",
+								"issue"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get Policy By ID",
 					"request": {
 						"method": "GET",
@@ -519,6 +690,55 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Get My Policies",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/policies/my?page=0&size=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"policies",
+								"my"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Policy",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/policies/1/cancel",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"policies",
+								"1",
+								"cancel"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -537,7 +757,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"policyId\": 1,\n    \"amount\": 12000.00,\n    \"paymentMode\": \"UPI\",\n    \"transactionReference\": \"TXN123456789\",\n    \"paymentStatus\": \"PAID\"\n}"
+							"raw": "{\n    \"policyId\": 1,\n    \"amount\": 12000.00,\n    \"paymentMode\": \"UPI\",\n    \"transactionReference\": \"TXN123456789\",\n    \"paymentStatus\": \"SUCCESS\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/payments",
@@ -600,6 +820,35 @@
 					"response": []
 				},
 				{
+					"name": "Get My Payments",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/payments/my?page=0&size=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"payments",
+								"my"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get Payments By Policy",
 					"request": {
 						"method": "GET",
@@ -646,6 +895,82 @@
 							"path": [
 								"api",
 								"claims"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Claim By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/claims/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"claims",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Claims",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/claims?page=0&size=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"claims"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Claims",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/claims/my?page=0&size=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"claims",
+								"my"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
 							]
 						}
 					},

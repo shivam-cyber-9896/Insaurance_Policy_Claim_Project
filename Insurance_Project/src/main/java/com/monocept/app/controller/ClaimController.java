@@ -1,6 +1,9 @@
 package com.monocept.app.controller;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -28,6 +31,24 @@ public class ClaimController {
 	public ResponseEntity<ClaimResponseDto> createClaim(@Valid @RequestBody ClaimRequestDto dto) {
 
 		return ResponseEntity.ok(claimService.createClaim(dto));
+	}
+
+	@GetMapping("/{id}")
+	public ResponseEntity<ClaimResponseDto> getClaimById(@PathVariable Long id) {
+
+		return ResponseEntity.ok(claimService.getClaimById(id));
+	}
+
+	@GetMapping
+	public ResponseEntity<Page<ClaimResponseDto>> getAllClaims(Pageable pageable) {
+
+		return ResponseEntity.ok(claimService.getAllClaims(pageable));
+	}
+
+	@GetMapping("/my")
+	public ResponseEntity<Page<ClaimResponseDto>> getMyClaims(Pageable pageable) {
+
+		return ResponseEntity.ok(claimService.getMyClaims(pageable));
 	}
 
 	@PutMapping("/{id}/review")

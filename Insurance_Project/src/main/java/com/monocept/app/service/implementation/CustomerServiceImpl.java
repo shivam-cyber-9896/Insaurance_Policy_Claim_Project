@@ -47,6 +47,10 @@ public class CustomerServiceImpl implements CustomerService {
 	                    new ResourceNotFoundException(
 	                            "User not found"));
 
+	    if (user.getRole() != com.monocept.app.enums.Role.CUSTOMER) {
+	        throw new com.monocept.app.exception.InvalidOperationException("Only users with the CUSTOMER role can create a customer profile");
+	    }
+
 	    if(customerRepository.existsByUser(user)) {
 
 	        throw new DuplicateResourceException(
@@ -73,6 +77,16 @@ public class CustomerServiceImpl implements CustomerService {
 
 		Customer customer = findCustomerById(id);
 
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		User loggedInUser = userRepository.findByMail(email)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
+			if (!customer.getUser().getMail().equals(email)) {
+				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to update this profile");
+			}
+		}
+
 		customer.setDateOfBirth(dto.getDateOfBirth());
 
 		customer.setAddress(dto.getAddress());
@@ -95,15 +109,29 @@ public class CustomerServiceImpl implements CustomerService {
 	@Override
 	public CustomerResponseDto getCustomerById(Long id) {
 
-		return convertToDto(findCustomerById(id));
+		Customer customer = findCustomerById(id);
+
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		User loggedInUser = userRepository.findByMail(email)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
+			if (!customer.getUser().getMail().equals(email)) {
+				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to view this profile");
+			}
+		}
+
+		return convertToDto(customer);
 	}
 
 	@Override
 	public CustomerResponseDto getMyProfile() {
-
-		// JWT logic later
-
-		throw new UnsupportedOperationException("Implement using SecurityContextHolder");
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		User user = userRepository.findByMail(email)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+		Customer customer = customerRepository.findByUser(user)
+				.orElseThrow(() -> new ResourceNotFoundException("Customer profile not found"));
+		return convertToDto(customer);
 	}
 
 	@Override
@@ -113,7 +141,13 @@ public class CustomerServiceImpl implements CustomerService {
 	}
 
 	private Customer findCustomerById(Long id) {
-
+		User user = userRepository.findById(id).orElse(null);
+		if (user != null) {
+			java.util.Optional<Customer> custOpt = customerRepository.findByUser(user);
+			if (custOpt.isPresent()) {
+				return custOpt.get();
+			}
+		}
 		return customerRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + id));
 	}

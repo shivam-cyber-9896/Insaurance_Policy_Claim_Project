@@ -17,4 +17,6 @@ public interface PaymentService {
 	List<PaymentResponseDto> getPaymentsByPolicy(Long policyId);
 
 	Page<PaymentResponseDto> getAllPayments(Pageable pageable);
+
+	Page<PaymentResponseDto> getMyPayments(Pageable pageable);
 }

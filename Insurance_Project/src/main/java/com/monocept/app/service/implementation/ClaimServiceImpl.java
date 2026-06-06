@@ -1,10 +1,12 @@
 package com.monocept.app.service.implementation;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.monocept.app.dto.*;
@@ -14,8 +16,14 @@ import com.monocept.app.exception.InvalidOperationException;
 import com.monocept.app.exception.ResourceNotFoundException;
 import com.monocept.app.model.Claim;
 import com.monocept.app.model.Policy;
+import com.monocept.app.model.User;
+import com.monocept.app.model.Customer;
+import com.monocept.app.model.ClaimStatusHistory;
 import com.monocept.app.repository.ClaimRepository;
 import com.monocept.app.repository.PolicyRepository;
+import com.monocept.app.repository.UserRepository;
+import com.monocept.app.repository.CustomerRepository;
+import com.monocept.app.repository.ClaimStatusHistoryRepository;
 import com.monocept.app.service.ClaimService;
 
 import lombok.RequiredArgsConstructor;
@@ -28,6 +36,9 @@ public class ClaimServiceImpl implements ClaimService {
 
 	private final ClaimRepository claimRepository;
 	private final PolicyRepository policyRepository;
+	private final UserRepository userRepository;
+	private final CustomerRepository customerRepository;
+	private final ClaimStatusHistoryRepository historyRepository;
 	private final ModelMapper modelMapper;
 
 	@Override
@@ -38,9 +49,24 @@ public class ClaimServiceImpl implements ClaimService {
 		Policy policy = policyRepository.findById(dto.getPolicyId())
 				.orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
 
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		User loggedInUser = userRepository.findByMail(email)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
+			if (!policy.getCustomer().getUser().getMail().equals(email)) {
+				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to raise claim for this policy");
+			}
+		}
+
 		if (policy.getPolicyStatus() != PolicyStatus.ACTIVE) {
 
 			throw new InvalidOperationException("Claim can only be raised for active policy");
+		}
+
+		// Validation CLM-BR-004: Claim amount must not exceed policy coverage amount
+		if (dto.getClaimAmount().compareTo(BigDecimal.valueOf(policy.getPolicyPlan().getCoverageAmount())) > 0) {
+			throw new InvalidOperationException("Claim amount cannot exceed policy coverage amount of " + policy.getPolicyPlan().getCoverageAmount());
 		}
 
 		Claim claim = modelMapper.map(dto, Claim.class);
@@ -59,6 +85,15 @@ public class ClaimServiceImpl implements ClaimService {
 
 		Claim savedClaim = claimRepository.save(claim);
 
+		// Record in history
+		ClaimStatusHistory history = new ClaimStatusHistory();
+		history.setClaim(savedClaim);
+		history.setPreviousStatus(null);
+		history.setNewStatus(ClaimStatus.SUBMITTED);
+		history.setRemarks("Claim submitted");
+		history.setUpdatedBy(loggedInUser);
+		historyRepository.save(history);
+
 		log.info("Claim created successfully: {}", savedClaim.getClaimNumber());
 
 		return convertToDto(savedClaim);
@@ -69,11 +104,31 @@ public class ClaimServiceImpl implements ClaimService {
 
 		Claim claim = findClaimById(claimId);
 
+		// CLM-BR-009: Approved and rejected claims cannot be modified again.
+		if (claim.getClaimStatus() == ClaimStatus.APPROVED || claim.getClaimStatus() == ClaimStatus.REJECTED) {
+			throw new InvalidOperationException("Approved or rejected claims cannot be modified.");
+		}
+
+		ClaimStatus oldStatus = claim.getClaimStatus();
+
 		claim.setAgentRemarks(dto.getRemarks());
 
 		claim.setClaimStatus(dto.getRecommendedStatus());
 
 		Claim updatedClaim = claimRepository.save(claim);
+
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		User loggedInUser = userRepository.findByMail(email)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		// Record in history
+		ClaimStatusHistory history = new ClaimStatusHistory();
+		history.setClaim(updatedClaim);
+		history.setPreviousStatus(oldStatus);
+		history.setNewStatus(dto.getRecommendedStatus());
+		history.setRemarks(dto.getRemarks());
+		history.setUpdatedBy(loggedInUser);
+		historyRepository.save(history);
 
 		return convertToDto(updatedClaim);
 	}
@@ -83,11 +138,31 @@ public class ClaimServiceImpl implements ClaimService {
 
 		Claim claim = findClaimById(claimId);
 
+		// CLM-BR-009: Approved and rejected claims cannot be modified again.
+		if (claim.getClaimStatus() == ClaimStatus.APPROVED || claim.getClaimStatus() == ClaimStatus.REJECTED) {
+			throw new InvalidOperationException("Approved or rejected claims cannot be modified.");
+		}
+
+		ClaimStatus oldStatus = claim.getClaimStatus();
+
 		claim.setAdminRemarks(dto.getRemarks());
 
 		claim.setClaimStatus(dto.getFinalDecisionStatus());
 
 		Claim updatedClaim = claimRepository.save(claim);
+
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		User loggedInUser = userRepository.findByMail(email)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		// Record in history
+		ClaimStatusHistory history = new ClaimStatusHistory();
+		history.setClaim(updatedClaim);
+		history.setPreviousStatus(oldStatus);
+		history.setNewStatus(dto.getFinalDecisionStatus());
+		history.setRemarks(dto.getRemarks());
+		history.setUpdatedBy(loggedInUser);
+		historyRepository.save(history);
 
 		return convertToDto(updatedClaim);
 	}
@@ -95,13 +170,35 @@ public class ClaimServiceImpl implements ClaimService {
 	@Override
 	public ClaimResponseDto getClaimById(Long id) {
 
-		return convertToDto(findClaimById(id));
+		Claim claim = findClaimById(id);
+
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		User loggedInUser = userRepository.findByMail(email)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
+			if (!claim.getPolicy().getCustomer().getUser().getMail().equals(email)) {
+				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to view this claim");
+			}
+		}
+
+		return convertToDto(claim);
 	}
 
 	@Override
 	public Page<ClaimResponseDto> getAllClaims(Pageable pageable) {
 
 		return claimRepository.findAll(pageable).map(this::convertToDto);
+	}
+
+	@Override
+	public Page<ClaimResponseDto> getMyClaims(Pageable pageable) {
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		User user = userRepository.findByMail(email)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+		Customer customer = customerRepository.findByUser(user)
+				.orElseThrow(() -> new ResourceNotFoundException("Customer profile not found"));
+		return claimRepository.findByPolicyCustomer(customer, pageable).map(this::convertToDto);
 	}
 
 	private Claim findClaimById(Long id) {
@@ -120,9 +217,4 @@ public class ClaimServiceImpl implements ClaimService {
 
 		return dto;
 	}
-
-	
-
-	
-
 }

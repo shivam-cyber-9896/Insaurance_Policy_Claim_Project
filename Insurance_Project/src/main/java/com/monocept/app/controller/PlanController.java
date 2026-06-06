@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,27 +26,32 @@ public class PlanController {
     private final PolicyPlanService planService;
 
     @PostMapping
-    public ResponseEntity<PlanResponseDto>
-    createPlan(
-            @Valid @RequestBody PlanRequestDto dto) {
+    public ResponseEntity<PlanResponseDto> createPlan(@Valid @RequestBody PlanRequestDto dto) {
 
-        return ResponseEntity.ok(
-                planService.createPlan(dto));
+        return ResponseEntity.ok(planService.createPlan(dto));
     }
 
     @GetMapping
-    public ResponseEntity<Page<PlanResponseDto>>
-    getAllPlans(Pageable pageable) {
+    public ResponseEntity<Page<PlanResponseDto>> getAllPlans(Pageable pageable) {
 
-        return ResponseEntity.ok(
-                planService.getAllPlans(pageable));
+        return ResponseEntity.ok(planService.getAllPlans(pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PlanResponseDto>
-    getPlanById(@PathVariable Long id) {
+    public ResponseEntity<PlanResponseDto> getPlanById(@PathVariable Long id) {
 
-        return ResponseEntity.ok(
-                planService.getPlanById(id));
+        return ResponseEntity.ok(planService.getPlanById(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PlanResponseDto> updatePlan(@PathVariable Long id, @Valid @RequestBody PlanRequestDto dto) {
+
+        return ResponseEntity.ok(planService.updatePlan(id, dto));
+    }
+
+    @PutMapping("/{id}/deactivate")
+    public ResponseEntity<PlanResponseDto> deactivatePlan(@PathVariable Long id) {
+
+        return ResponseEntity.ok(planService.deactivatePlan(id));
     }
 }

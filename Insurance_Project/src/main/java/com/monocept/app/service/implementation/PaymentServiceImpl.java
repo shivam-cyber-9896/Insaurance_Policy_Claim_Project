@@ -7,6 +7,7 @@ import java.util.List;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.monocept.app.dto.PaymentRequestDto;
@@ -17,8 +18,12 @@ import com.monocept.app.exception.*;
 import com.monocept.app.exception.CustomExceptions.DuplicateResourceException;
 import com.monocept.app.model.Policy;
 import com.monocept.app.model.PremiumPayment;
+import com.monocept.app.model.User;
+import com.monocept.app.model.Customer;
 import com.monocept.app.repository.PolicyRepository;
 import com.monocept.app.repository.PremiumPaymentRepository;
+import com.monocept.app.repository.UserRepository;
+import com.monocept.app.repository.CustomerRepository;
 import com.monocept.app.service.PaymentService;
 
 import lombok.RequiredArgsConstructor;
@@ -31,6 +36,8 @@ public class PaymentServiceImpl implements PaymentService {
 
 	private final PremiumPaymentRepository paymentRepository;
 	private final PolicyRepository policyRepository;
+	private final UserRepository userRepository;
+	private final CustomerRepository customerRepository;
 	private final ModelMapper modelMapper;
 
 	@Override
@@ -45,6 +52,16 @@ public class PaymentServiceImpl implements PaymentService {
 
 		Policy policy = policyRepository.findById(dto.getPolicyId())
 				.orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
+
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		User loggedInUser = userRepository.findByMail(email)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
+			if (!policy.getCustomer().getUser().getMail().equals(email)) {
+				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to make payment for this policy");
+			}
+		}
 
 		PremiumPayment payment = modelMapper.map(dto, PremiumPayment.class);
 
@@ -73,11 +90,34 @@ public class PaymentServiceImpl implements PaymentService {
 
 		PremiumPayment payment = findPaymentById(id);
 
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		User loggedInUser = userRepository.findByMail(email)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
+			if (!payment.getPolicy().getCustomer().getUser().getMail().equals(email)) {
+				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to view this payment");
+			}
+		}
+
 		return convertToDto(payment);
 	}
 
 	@Override
 	public List<PaymentResponseDto> getPaymentsByPolicy(Long policyId) {
+
+		Policy policy = policyRepository.findById(policyId)
+				.orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
+
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		User loggedInUser = userRepository.findByMail(email)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
+			if (!policy.getCustomer().getUser().getMail().equals(email)) {
+				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to view payments for this policy");
+			}
+		}
 
 		return paymentRepository.findByPolicyId(policyId).stream().map(this::convertToDto).toList();
 	}
@@ -86,6 +126,16 @@ public class PaymentServiceImpl implements PaymentService {
 	public Page<PaymentResponseDto> getAllPayments(Pageable pageable) {
 
 		return paymentRepository.findAll(pageable).map(this::convertToDto);
+	}
+
+	@Override
+	public Page<PaymentResponseDto> getMyPayments(Pageable pageable) {
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		User user = userRepository.findByMail(email)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+		Customer customer = customerRepository.findByUser(user)
+				.orElseThrow(() -> new ResourceNotFoundException("Customer profile not found"));
+		return paymentRepository.findByPolicyCustomer(customer, pageable).map(this::convertToDto);
 	}
 
 	private PremiumPayment findPaymentById(Long id) {

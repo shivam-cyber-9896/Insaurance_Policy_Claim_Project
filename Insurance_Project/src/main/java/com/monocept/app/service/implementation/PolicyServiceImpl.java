@@ -79,14 +79,44 @@ public class PolicyServiceImpl implements PolicyService {
 
 	@Override
 	public PolicyResponseDto issuePolicy(PolicyIssueRequestDto dto) {
+		log.info("Issuing policy to customer: {}", dto.getCustomerId());
 
-		throw new UnsupportedOperationException("Implement admin/agent issue policy");
+		Customer customer = customerRepository.findById(dto.getCustomerId())
+				.orElseThrow(() -> new ResourceNotFoundException("Customer profile not found"));
+
+		PolicyPlan plan = planRepository.findById(dto.getPlanId())
+				.orElseThrow(() -> new ResourceNotFoundException("Plan not found"));
+
+		Policy policy = new Policy();
+		policy.setCustomer(customer);
+		policy.setPolicyPlan(plan);
+		policy.setPolicyNumber(UUID.randomUUID().toString().substring(0, 10));
+		policy.setStartDate(dto.getStartDate());
+		policy.setEndDate(dto.getStartDate().plusYears(plan.getDuration()));
+		policy.setPolicyStatus(PolicyStatus.PENDING_PAYMENT);
+		policy.setTotalPremiumPaid(BigDecimal.ZERO);
+
+		Policy savedPolicy = policyRepository.save(policy);
+
+		log.info("Policy issued successfully");
+
+		return convertToDto(savedPolicy);
 	}
 
 	@Override
 	public PolicyResponseDto getPolicyById(Long id) {
 
 		Policy policy = findPolicyById(id);
+
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		User loggedInUser = userRepository.findByMail(email)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
+			if (!policy.getCustomer().getUser().getMail().equals(email)) {
+				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to view this policy");
+			}
+		}
 
 		return convertToDto(policy);
 	}
@@ -99,6 +129,16 @@ public class PolicyServiceImpl implements PolicyService {
 		policy.setPolicyStatus(PolicyStatus.CANCELLED);
 
 		return convertToDto(policyRepository.save(policy));
+	}
+
+	@Override
+	public Page<PolicyResponseDto> getMyPolicies(Pageable pageable) {
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		User user = userRepository.findByMail(email)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+		Customer customer = customerRepository.findByUser(user)
+				.orElseThrow(() -> new ResourceNotFoundException("Customer profile not found"));
+		return policyRepository.findByCustomer(customer, pageable).map(this::convertToDto);
 	}
 
 	
