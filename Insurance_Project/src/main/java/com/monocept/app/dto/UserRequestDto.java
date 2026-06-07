@@ -22,7 +22,7 @@ public class UserRequestDto {
 
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
-    private String email;
+    private String mail;
 
     @NotBlank(message = "Password is required")
     private String password;
@@ -32,7 +32,7 @@ public class UserRequestDto {
         regexp = "^[6-9]\\d{9}$",
         message = "Mobile number must be 10 digits"
     )
-    private String mobileNumber;
+    private String phoneNumber;
 
     @NotNull(message = "Role is required")
     private Role role;
