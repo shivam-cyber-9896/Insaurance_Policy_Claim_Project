@@ -40,7 +40,7 @@ public class AuthServiceImpl implements AuthService {
 			throw new com.monocept.app.exception.InvalidOperationException("Public registration is allowed only for customers");
 		}
 
-		if (userRepository.existsByMail(dto.getEmail())) {
+		if (userRepository.existsByMail(dto.getMail())) {
 
 			throw new DuplicateResourceException("Email already exists");
 		}
