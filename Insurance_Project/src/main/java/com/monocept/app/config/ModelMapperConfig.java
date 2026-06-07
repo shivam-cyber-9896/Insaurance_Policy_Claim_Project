@@ -26,6 +26,12 @@ public class ModelMapperConfig {
         modelMapper.typeMap(com.monocept.app.dto.ClaimRequestDto.class, com.monocept.app.model.Claim.class)
             .addMappings(mapper -> mapper.skip(com.monocept.app.model.Claim::setId));
             
+        modelMapper.typeMap(com.monocept.app.dto.UserRequestDto.class, com.monocept.app.model.User.class)
+            .addMappings(mapper -> {
+                mapper.map(com.monocept.app.dto.UserRequestDto::getEmail, com.monocept.app.model.User::setMail);
+                mapper.map(com.monocept.app.dto.UserRequestDto::getMobileNumber, com.monocept.app.model.User::setPhoneNumber);
+            });
+            
         modelMapper.typeMap(com.monocept.app.model.ClaimStatusHistory.class, com.monocept.app.dto.ClaimHistoryResponseDto.class)
             .addMappings(mapper -> mapper.map(src -> src.getUpdatedBy().getMail(), com.monocept.app.dto.ClaimHistoryResponseDto::setUpdatedBy));
             
