@@ -7,6 +7,6 @@ import com.monocept.app.model.User;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long>{
-	boolean existsByMail(String mail);
-	Optional<User> findByMail(String mail);
+	boolean existsByEmail(String email);
+	Optional<User> findByEmail(String email);
 }

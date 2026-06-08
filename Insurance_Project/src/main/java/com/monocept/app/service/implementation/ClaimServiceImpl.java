@@ -50,11 +50,11 @@ public class ClaimServiceImpl implements ClaimService {
 				.orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User loggedInUser = userRepository.findByMail(email)
+		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
-			if (!policy.getCustomer().getUser().getMail().equals(email)) {
+			if (!policy.getCustomer().getUser().getEmail().equals(email)) {
 				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to raise claim for this policy");
 			}
 		}
@@ -118,7 +118,7 @@ public class ClaimServiceImpl implements ClaimService {
 		Claim updatedClaim = claimRepository.save(claim);
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User loggedInUser = userRepository.findByMail(email)
+		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		// Record in history
@@ -152,7 +152,7 @@ public class ClaimServiceImpl implements ClaimService {
 		Claim updatedClaim = claimRepository.save(claim);
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User loggedInUser = userRepository.findByMail(email)
+		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		// Record in history
@@ -173,11 +173,11 @@ public class ClaimServiceImpl implements ClaimService {
 		Claim claim = findClaimById(id);
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User loggedInUser = userRepository.findByMail(email)
+		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
-			if (!claim.getPolicy().getCustomer().getUser().getMail().equals(email)) {
+			if (!claim.getPolicy().getCustomer().getUser().getEmail().equals(email)) {
 				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to view this claim");
 			}
 		}
@@ -194,7 +194,7 @@ public class ClaimServiceImpl implements ClaimService {
 	@Override
 	public Page<ClaimResponseDto> getMyClaims(Pageable pageable) {
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User user = userRepository.findByMail(email)
+		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 		Customer customer = customerRepository.findByUser(user)
 				.orElseThrow(() -> new ResourceNotFoundException("Customer profile not found"));

@@ -54,11 +54,11 @@ public class PaymentServiceImpl implements PaymentService {
 				.orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User loggedInUser = userRepository.findByMail(email)
+		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
-			if (!policy.getCustomer().getUser().getMail().equals(email)) {
+			if (!policy.getCustomer().getUser().getEmail().equals(email)) {
 				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to make payment for this policy");
 			}
 		}
@@ -91,11 +91,11 @@ public class PaymentServiceImpl implements PaymentService {
 		PremiumPayment payment = findPaymentById(id);
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User loggedInUser = userRepository.findByMail(email)
+		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
-			if (!payment.getPolicy().getCustomer().getUser().getMail().equals(email)) {
+			if (!payment.getPolicy().getCustomer().getUser().getEmail().equals(email)) {
 				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to view this payment");
 			}
 		}
@@ -110,11 +110,11 @@ public class PaymentServiceImpl implements PaymentService {
 				.orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User loggedInUser = userRepository.findByMail(email)
+		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
-			if (!policy.getCustomer().getUser().getMail().equals(email)) {
+			if (!policy.getCustomer().getUser().getEmail().equals(email)) {
 				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to view payments for this policy");
 			}
 		}
@@ -131,7 +131,7 @@ public class PaymentServiceImpl implements PaymentService {
 	@Override
 	public Page<PaymentResponseDto> getMyPayments(Pageable pageable) {
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User user = userRepository.findByMail(email)
+		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 		Customer customer = customerRepository.findByUser(user)
 				.orElseThrow(() -> new ResourceNotFoundException("Customer profile not found"));

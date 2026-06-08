@@ -42,7 +42,7 @@ public class CustomerServiceImpl implements CustomerService {
 	            .getAuthentication()
 	            .getName();
 
-	    User user = userRepository.findByMail(email)
+	    User user = userRepository.findByEmail(email)
 	            .orElseThrow(() ->
 	                    new ResourceNotFoundException(
 	                            "User not found"));
@@ -78,11 +78,11 @@ public class CustomerServiceImpl implements CustomerService {
 		Customer customer = findCustomerById(id);
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User loggedInUser = userRepository.findByMail(email)
+		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
-			if (!customer.getUser().getMail().equals(email)) {
+			if (!customer.getUser().getEmail().equals(email)) {
 				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to update this profile");
 			}
 		}
@@ -112,11 +112,11 @@ public class CustomerServiceImpl implements CustomerService {
 		Customer customer = findCustomerById(id);
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User loggedInUser = userRepository.findByMail(email)
+		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
-			if (!customer.getUser().getMail().equals(email)) {
+			if (!customer.getUser().getEmail().equals(email)) {
 				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to view this profile");
 			}
 		}
@@ -127,7 +127,7 @@ public class CustomerServiceImpl implements CustomerService {
 	@Override
 	public CustomerResponseDto getMyProfile() {
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User user = userRepository.findByMail(email)
+		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 		Customer customer = customerRepository.findByUser(user)
 				.orElseThrow(() -> new ResourceNotFoundException("Customer profile not found"));
@@ -160,7 +160,7 @@ public class CustomerServiceImpl implements CustomerService {
 
 		dto.setFullName(customer.getUser().getFullName());
 
-		dto.setEmail(customer.getUser().getMail());
+		dto.setEmail(customer.getUser().getEmail());
 
 		dto.setPhoneNumber(customer.getUser().getPhoneNumber());
 

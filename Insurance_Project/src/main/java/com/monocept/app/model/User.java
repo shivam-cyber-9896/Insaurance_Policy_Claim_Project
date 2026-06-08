@@ -43,7 +43,7 @@ public class User {
 	@Email(message = "Invalid Email Format")
 	@Column(name="Email", unique = true)
 	@NotBlank
-	private String mail;
+	private String email;
 
 	@Column(name="Password", nullable = false)
 	@NotBlank

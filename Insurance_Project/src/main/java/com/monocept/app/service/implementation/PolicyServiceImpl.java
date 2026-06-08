@@ -46,7 +46,7 @@ public class PolicyServiceImpl implements PolicyService {
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
-		User user = userRepository.findByMail(email)
+		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		Customer customer = customerRepository.findByUser(user)
@@ -109,11 +109,11 @@ public class PolicyServiceImpl implements PolicyService {
 		Policy policy = findPolicyById(id);
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User loggedInUser = userRepository.findByMail(email)
+		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
-			if (!policy.getCustomer().getUser().getMail().equals(email)) {
+			if (!policy.getCustomer().getUser().getEmail().equals(email)) {
 				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to view this policy");
 			}
 		}
@@ -134,7 +134,7 @@ public class PolicyServiceImpl implements PolicyService {
 	@Override
 	public Page<PolicyResponseDto> getMyPolicies(Pageable pageable) {
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User user = userRepository.findByMail(email)
+		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 		Customer customer = customerRepository.findByUser(user)
 				.orElseThrow(() -> new ResourceNotFoundException("Customer profile not found"));
