@@ -18,7 +18,7 @@ import com.monocept.app.enums.ProductType;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PolicyResponseDto {
-    private Long id;
+   
     private String policyNumber;
     private Long customerId;
     private String customerName;

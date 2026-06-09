@@ -14,6 +14,7 @@ import com.monocept.app.dto.PaymentRequestDto;
 import com.monocept.app.dto.PaymentResponseDto;
 import com.monocept.app.enums.PaymentStatus;
 import com.monocept.app.enums.PolicyStatus;
+import com.monocept.app.enums.Role;
 import com.monocept.app.exception.*;
 import com.monocept.app.exception.CustomExceptions.DuplicateResourceException;
 import com.monocept.app.model.Policy;
@@ -45,36 +46,57 @@ public class PaymentServiceImpl implements PaymentService {
 
 		log.info("Recording payment");
 
+		// Check duplicate transaction reference
 		if (paymentRepository.existsByTransactionReference(dto.getTransactionReference())) {
-
 			throw new DuplicateResourceException("Transaction reference already exists");
 		}
 
+		// Find policy
 		Policy policy = policyRepository.findById(dto.getPolicyId())
 				.orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
 
+		// Check logged-in user
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
 		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
+		// Customer can only pay for own policy
+		if (loggedInUser.getRole() == Role.CUSTOMER) {
+
 			if (!policy.getCustomer().getUser().getEmail().equals(email)) {
-				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to make payment for this policy");
+
+				throw new InvalidOperationException("You are not authorized to make payment for this policy");
 			}
 		}
 
+		// Prevent payment if already active
+		if (policy.getPolicyStatus() == PolicyStatus.ACTIVE) {
+			throw new InvalidOperationException("Premium already paid for this policy");
+		}
+
+		// Validate exact premium amount
+		BigDecimal expectedPremium = policy.getPolicyPlan().getPremiumAmount();
+
+		if (dto.getAmount().compareTo(expectedPremium) != 0) {
+
+			throw new InvalidOperationException("Premium amount must be exactly ₹" + expectedPremium);
+		}
+
+		// Map DTO to Entity
 		PremiumPayment payment = modelMapper.map(dto, PremiumPayment.class);
 
 		payment.setPolicy(policy);
 
+		// Save Payment
 		PremiumPayment savedPayment = paymentRepository.save(payment);
 
+		// Update Policy
 		if (savedPayment.getPaymentStatus() == PaymentStatus.SUCCESS) {
 
 			policy.setTotalPremiumPaid(policy.getTotalPremiumPaid().add(savedPayment.getAmount()));
 
-			if (policy.getTotalPremiumPaid()
-					.compareTo(BigDecimal.valueOf(policy.getPolicyPlan().getPremiumAmount())) >= 0) {
+			if (policy.getTotalPremiumPaid().compareTo(expectedPremium) >= 0) {
 
 				policy.setPolicyStatus(PolicyStatus.ACTIVE);
 			}
@@ -96,7 +118,8 @@ public class PaymentServiceImpl implements PaymentService {
 
 		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
 			if (!payment.getPolicy().getCustomer().getUser().getEmail().equals(email)) {
-				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to view this payment");
+				throw new com.monocept.app.exception.InvalidOperationException(
+						"You are not authorized to view this payment");
 			}
 		}
 
@@ -115,7 +138,8 @@ public class PaymentServiceImpl implements PaymentService {
 
 		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
 			if (!policy.getCustomer().getUser().getEmail().equals(email)) {
-				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to view payments for this policy");
+				throw new com.monocept.app.exception.InvalidOperationException(
+						"You are not authorized to view payments for this policy");
 			}
 		}
 

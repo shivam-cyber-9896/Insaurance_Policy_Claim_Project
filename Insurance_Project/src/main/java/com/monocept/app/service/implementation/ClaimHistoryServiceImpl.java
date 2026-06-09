@@ -46,7 +46,7 @@ public class ClaimHistoryServiceImpl implements ClaimHistoryService {
 			}
 		}
 
-		return historyRepository.findByClaimOrderByUpdatedDateDesc(claim).stream()
+		return historyRepository.findByClaimOrderByChangedAtDesc(claim).stream()
 				.map(history -> modelMapper.map(history, ClaimHistoryResponseDto.class)).toList();
 	}
 }

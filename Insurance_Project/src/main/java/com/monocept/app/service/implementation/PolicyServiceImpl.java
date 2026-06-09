@@ -64,7 +64,7 @@ public class PolicyServiceImpl implements PolicyService {
 
 		policy.setStartDate(dto.getStartDate());
 
-		policy.setEndDate(dto.getStartDate().plusYears(plan.getDuration()));
+		policy.setEndDate(dto.getStartDate().plusYears(plan.getDurationYears()));
 
 		policy.setPolicyStatus(PolicyStatus.PENDING_PAYMENT);
 
@@ -92,7 +92,7 @@ public class PolicyServiceImpl implements PolicyService {
 		policy.setPolicyPlan(plan);
 		policy.setPolicyNumber(UUID.randomUUID().toString().substring(0, 10));
 		policy.setStartDate(dto.getStartDate());
-		policy.setEndDate(dto.getStartDate().plusYears(plan.getDuration()));
+		policy.setEndDate(dto.getStartDate().plusYears(plan.getDurationYears()));
 		policy.setPolicyStatus(PolicyStatus.PENDING_PAYMENT);
 		policy.setTotalPremiumPaid(BigDecimal.ZERO);
 

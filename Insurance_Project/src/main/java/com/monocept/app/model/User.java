@@ -1,79 +1,75 @@
 package com.monocept.app.model;
 
-import java.time.LocalDate;
-
+import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.monocept.app.enums.Role;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import lombok.*;
 
 @Entity
-@Table(name="Users")
+@Table(name = "users")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name="User Id")
-	private long id;
-	
-	@Column(name="Full Name", nullable = false)
-	@NotBlank(message = "Name cannot be empty")
-	private String fullName;
-	
-	@Email(message = "Invalid Email Format")
-	@Column(name="Email", unique = true)
-	@NotBlank
-	private String email;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
+    private long id;
 
-	@Column(name="Password", nullable = false)
-	@NotBlank
-	@Size(min = 8, message = "Password must contain at least 8 characters")
-	private String password;
-	
-	@Column(name="Mobile Number")
-	@NotBlank
-	@Pattern(
-	    regexp = "^[6-9]\\d{9}$",
-	    message = "Mobile number must be exactly 10 digits"
-	)
-	private String phoneNumber;
-	
-	@Column(name="Role", nullable = false)
-	@Enumerated(EnumType.STRING)
-	private Role role;
-	
-	@Column(name="Active Status", nullable = false)
-	private boolean isActive=true;
-	
-	@Column(name="Created Date")
-	@CreationTimestamp
-	private LocalDate createDate;
-	
-	@Column(name="Updated Date")
-	@UpdateTimestamp
-	private LocalDate updateDate;
-	
-	@OneToOne(mappedBy = "user")
-	private Customer customer;
-	
+    @Column(name = "full_name", nullable = false, length = 100)
+    @NotBlank(message = "Name cannot be empty")
+    @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
+    @Pattern(
+        regexp = "^[a-zA-Z .'\\-]+$",
+        message = "Name can only contain letters, spaces, dots, apostrophes, or hyphens"
+    )
+    private String fullName;
+
+    @Email(message = "Invalid email format")
+    @NotBlank(message = "Email cannot be empty")
+    @Size(max = 255, message = "Email must not exceed 255 characters")
+    @Column(name = "email", unique = true, nullable = false, length = 255)
+    private String email;
+
+    @NotBlank(message = "Password cannot be empty")
+    @Size(min = 8, max = 255, message = "Password must be between 8 and 255 characters")
+    @Pattern(
+        regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!]).{8,}$",
+        message = "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character"
+    )
+    @Column(name = "password", nullable = false, length = 255)
+    private String password;
+
+    @NotBlank(message = "Phone number cannot be empty")
+    @Pattern(
+        regexp = "^[6-9]\\d{9}$",
+        message = "Mobile number must be a valid 10-digit Indian number"
+    )
+    @Column(name = "phone_number", length = 10)
+    private String phoneNumber;
+
+    @NotNull(message = "Role cannot be null")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false, length = 20)
+    private Role role;
+
+    @Column(name = "is_active", nullable = false)
+    private boolean active = true;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @OneToOne(mappedBy = "user")
+    @JsonIgnore
+    private Customer customer;
 }

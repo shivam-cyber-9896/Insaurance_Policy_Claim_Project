@@ -65,7 +65,7 @@ public class ClaimServiceImpl implements ClaimService {
 		}
 
 		// Validation CLM-BR-004: Claim amount must not exceed policy coverage amount
-		if (dto.getClaimAmount().compareTo(BigDecimal.valueOf(policy.getPolicyPlan().getCoverageAmount())) > 0) {
+		if (dto.getClaimAmount().compareTo(policy.getPolicyPlan().getCoverageAmount()) > 0) {
 			throw new InvalidOperationException("Claim amount cannot exceed policy coverage amount of " + policy.getPolicyPlan().getCoverageAmount());
 		}
 

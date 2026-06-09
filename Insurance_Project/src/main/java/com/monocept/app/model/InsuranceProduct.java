@@ -1,62 +1,77 @@
 package com.monocept.app.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.monocept.app.enums.ProductType;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import lombok.*;
 
 @Entity
-@Table(name="Insurance Products")
-@Data
+@Table(
+    name = "insurance_products",
+    indexes = {
+        @Index(name = "idx_product_name", columnList = "product_name"),
+        @Index(name = "idx_product_type", columnList = "product_type"),
+        @Index(name = "idx_product_active", columnList = "active")
+    }
+)
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@ToString(exclude = "policyPlans")
+@EqualsAndHashCode(exclude = "policyPlans")
 public class InsuranceProduct {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="Product Id")
+    @Column(name = "product_id")
     private Long id;
 
     @NotBlank(message = "Product name is required")
-    @Column(name="Product Name", unique = true)
+    @Size(min = 3, max = 100, message = "Product name must be between 3 and 100 characters")
+    @Pattern(
+        regexp = "^[a-zA-Z0-9 &()\\-]+$",
+        message = "Product name can only contain letters, digits, spaces, &, (), or hyphens"
+    )
+    @Column(name = "product_name", unique = true, nullable = false, length = 100)
     private String productName;
 
+    @NotNull(message = "Product type is required")
     @Enumerated(EnumType.STRING)
-    @Column(name="Product Type", nullable=false)
+    @Column(name = "product_type", nullable = false, length = 30)
     private ProductType productType;
 
-    @Column(name="Description")
-    @NotBlank
+    @NotBlank(message = "Description is required")
+    @Size(min = 10, max = 2000, message = "Description must be between 10 and 2000 characters")
+    @Column(name = "description", nullable = false, length = 2000)
     private String description;
 
-    @Column(name="Active Status")
+    @Column(name = "active", nullable = false)
+    @Builder.Default
     private boolean active = true;
 
     @CreationTimestamp
-    @Column(name="Created Date")
-    private LocalDateTime createdDate;
+    @Column(name = "created_at", updatable = false, nullable = false)
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name="Updated Date")
-    private LocalDateTime updatedDate;
-    
-    @OneToMany(mappedBy = "insuranceProduct")
-    private List<PolicyPlan> policyPlans;
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @OneToMany(
+        mappedBy = "insuranceProduct",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    @JsonIgnore
+    @Builder.Default
+    private List<PolicyPlan> policyPlans = new ArrayList<>();
 }
