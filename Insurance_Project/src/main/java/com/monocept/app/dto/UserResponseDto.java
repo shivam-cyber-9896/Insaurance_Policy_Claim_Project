@@ -15,7 +15,7 @@ import java.time.LocalDate;
 public class UserResponseDto {
     private long id;
     private String fullName;
-    private String email;
+    private String mail;
     private String phoneNumber;
     private Role role;
     private boolean active;

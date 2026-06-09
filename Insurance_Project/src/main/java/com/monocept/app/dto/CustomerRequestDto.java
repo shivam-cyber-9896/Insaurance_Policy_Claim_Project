@@ -1,5 +1,8 @@
 package com.monocept.app.dto;
 
+import java.time.LocalDate;
+
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
@@ -8,8 +11,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDate;
 
 @Data
 @Builder
@@ -20,6 +21,15 @@ public class CustomerRequestDto {
     @NotNull(message = "Date of birth is required")
     @Past(message = "Date of birth must be in the past")
     private LocalDate dateOfBirth;
+    @AssertTrue(message = "User must be at least 18 years old")
+    public boolean isAdult() {
+
+        if (dateOfBirth == null) {
+            return true;
+            // @NotNull will handle null separately
+        }
+        return !dateOfBirth.plusYears(18).isAfter(LocalDate.now());
+    }
 
     @NotBlank(message = "Address is required")
     private String address;
