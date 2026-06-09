@@ -28,7 +28,7 @@ public class Customer {
 	private Long id;
 
 	@NotNull(message = "User is required")
-	@OneToOne(fetch = FetchType.LAZY)
+	@OneToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "user_id", unique = true, nullable = false, foreignKey = @ForeignKey(name = "fk_customer_user"))
 	@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "customer" })
 	private User user;

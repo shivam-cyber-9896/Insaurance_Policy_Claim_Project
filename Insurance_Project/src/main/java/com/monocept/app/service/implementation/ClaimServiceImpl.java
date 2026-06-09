@@ -1,6 +1,8 @@
 package com.monocept.app.service.implementation;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
@@ -8,6 +10,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.monocept.app.dto.*;
 import com.monocept.app.enums.ClaimStatus;
@@ -15,10 +19,12 @@ import com.monocept.app.enums.PolicyStatus;
 import com.monocept.app.exception.InvalidOperationException;
 import com.monocept.app.exception.ResourceNotFoundException;
 import com.monocept.app.model.Claim;
+import com.monocept.app.model.ClaimDocument;
 import com.monocept.app.model.Policy;
 import com.monocept.app.model.User;
 import com.monocept.app.model.Customer;
 import com.monocept.app.model.ClaimStatusHistory;
+import com.monocept.app.repository.ClaimDocumentRepository;
 import com.monocept.app.repository.ClaimRepository;
 import com.monocept.app.repository.PolicyRepository;
 import com.monocept.app.repository.UserRepository;
@@ -40,9 +46,11 @@ public class ClaimServiceImpl implements ClaimService {
 	private final CustomerRepository customerRepository;
 	private final ClaimStatusHistoryRepository historyRepository;
 	private final ModelMapper modelMapper;
+	private final CloudinaryServiceImple cloudinaryService;
+	private final ClaimDocumentRepository claimDocumentRepository;
 
 	@Override
-	public ClaimResponseDto createClaim(ClaimRequestDto dto) {
+	public ClaimResponseDto createClaim(ClaimRequestDto dto, List<MultipartFile> files) throws IOException {
 
 		log.info("Creating claim");
 
@@ -55,35 +63,53 @@ public class ClaimServiceImpl implements ClaimService {
 
 		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
 			if (!policy.getCustomer().getUser().getEmail().equals(email)) {
-				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to raise claim for this policy");
+				throw new InvalidOperationException("You are not authorized to raise claim for this policy");
 			}
 		}
 
 		if (policy.getPolicyStatus() != PolicyStatus.ACTIVE) {
-
 			throw new InvalidOperationException("Claim can only be raised for active policy");
 		}
 
-		// Validation CLM-BR-004: Claim amount must not exceed policy coverage amount
 		if (dto.getClaimAmount().compareTo(policy.getPolicyPlan().getCoverageAmount()) > 0) {
-			throw new InvalidOperationException("Claim amount cannot exceed policy coverage amount of " + policy.getPolicyPlan().getCoverageAmount());
+			throw new InvalidOperationException("Claim amount cannot exceed policy coverage amount of "
+					+ policy.getPolicyPlan().getCoverageAmount());
 		}
 
 		Claim claim = modelMapper.map(dto, Claim.class);
-
 		claim.setPolicy(policy);
 
 		String claimNumber;
-
 		do {
-			claimNumber = "CLM-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+			claimNumber = "CLM-"
+					+ java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")) + "-"
+					+ java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase();
 		} while (claimRepository.existsByClaimNumber(claimNumber));
 
 		claim.setClaimNumber(claimNumber);
-
 		claim.setClaimStatus(ClaimStatus.SUBMITTED);
 
 		Claim savedClaim = claimRepository.save(claim);
+
+		// upload documents to Cloudinary if provided
+		if (files != null && !files.isEmpty()) {
+			for (MultipartFile file : files) {
+				if (!file.isEmpty()) {
+					String originalFilename = file.getOriginalFilename();
+					String extension = (originalFilename != null && originalFilename.contains("."))
+							? originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toUpperCase()
+							: "PDF";
+
+					String fileUrl = cloudinaryService.uploadFile(file, "claims/" + savedClaim.getId());
+
+					ClaimDocument document = ClaimDocument.builder().claim(savedClaim)
+							.documentName(originalFilename != null ? originalFilename : "document")
+							.documentType(extension).documentReference(fileUrl).build();
+
+					claimDocumentRepository.save(document);
+				}
+			}
+		}
 
 		// Record in history
 		ClaimStatusHistory history = new ClaimStatusHistory();
@@ -100,12 +126,13 @@ public class ClaimServiceImpl implements ClaimService {
 	}
 
 	@Override
+	@Transactional
 	public ClaimResponseDto reviewClaim(Long claimId, ClaimReviewRequestDto dto) {
 
 		Claim claim = findClaimById(claimId);
 
-		// CLM-BR-009: Approved and rejected claims cannot be modified again.
 		if (claim.getClaimStatus() == ClaimStatus.APPROVED || claim.getClaimStatus() == ClaimStatus.REJECTED) {
+
 			throw new InvalidOperationException("Approved or rejected claims cannot be modified.");
 		}
 
@@ -118,28 +145,31 @@ public class ClaimServiceImpl implements ClaimService {
 		Claim updatedClaim = claimRepository.save(claim);
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
 		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-		// Record in history
 		ClaimStatusHistory history = new ClaimStatusHistory();
+
 		history.setClaim(updatedClaim);
 		history.setPreviousStatus(oldStatus);
 		history.setNewStatus(dto.getRecommendedStatus());
 		history.setRemarks(dto.getRemarks());
 		history.setUpdatedBy(loggedInUser);
+
 		historyRepository.save(history);
 
 		return convertToDto(updatedClaim);
 	}
 
 	@Override
+	@Transactional
 	public ClaimResponseDto finalDecision(Long claimId, ClaimFinalDecisionRequestDto dto) {
 
 		Claim claim = findClaimById(claimId);
 
-		// CLM-BR-009: Approved and rejected claims cannot be modified again.
 		if (claim.getClaimStatus() == ClaimStatus.APPROVED || claim.getClaimStatus() == ClaimStatus.REJECTED) {
+
 			throw new InvalidOperationException("Approved or rejected claims cannot be modified.");
 		}
 
@@ -152,16 +182,18 @@ public class ClaimServiceImpl implements ClaimService {
 		Claim updatedClaim = claimRepository.save(claim);
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
 		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-		// Record in history
 		ClaimStatusHistory history = new ClaimStatusHistory();
+
 		history.setClaim(updatedClaim);
 		history.setPreviousStatus(oldStatus);
 		history.setNewStatus(dto.getFinalDecisionStatus());
 		history.setRemarks(dto.getRemarks());
 		history.setUpdatedBy(loggedInUser);
+
 		historyRepository.save(history);
 
 		return convertToDto(updatedClaim);
@@ -178,7 +210,8 @@ public class ClaimServiceImpl implements ClaimService {
 
 		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
 			if (!claim.getPolicy().getCustomer().getUser().getEmail().equals(email)) {
-				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to view this claim");
+				throw new com.monocept.app.exception.InvalidOperationException(
+						"You are not authorized to view this claim");
 			}
 		}
 
@@ -217,4 +250,5 @@ public class ClaimServiceImpl implements ClaimService {
 
 		return dto;
 	}
+
 }

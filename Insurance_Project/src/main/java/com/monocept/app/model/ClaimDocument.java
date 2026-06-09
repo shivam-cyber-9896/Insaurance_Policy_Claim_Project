@@ -59,10 +59,11 @@ public class ClaimDocument {
 
     @NotBlank(message = "Document reference is required")
     @Size(max = 500, message = "Document reference must not exceed 500 characters")
-    @Pattern(
-        regexp = "^[a-zA-Z0-9/\\-_.]+$",
-        message = "Document reference can only contain letters, digits, slashes, hyphens, underscores, or dots"
-    )
+	/*
+	 * @Pattern( regexp = "^[a-zA-Z0-9/\\-_.]+$", message =
+	 * "Document reference can only contain letters, digits, slashes, hyphens, underscores, or dots"
+	 * )
+	 */
     @Column(name = "document_reference", unique = true, nullable = false, length = 500)
     private String documentReference;
 

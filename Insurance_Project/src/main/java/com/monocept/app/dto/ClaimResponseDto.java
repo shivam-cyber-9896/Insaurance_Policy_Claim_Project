@@ -9,13 +9,14 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ClaimResponseDto {
-    private String claimNumber;
+	private String claimNumber;
     private String policyNumber;
     private String customerName;
     private BigDecimal claimAmount;
@@ -24,6 +25,7 @@ public class ClaimResponseDto {
     private ClaimStatus claimStatus;
     private String agentRemarks;
     private String adminRemarks;
-    private LocalDateTime createdDate;
-    private LocalDateTime updatedDate;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private List<ClaimDocumentResponseDto> documents;
 }

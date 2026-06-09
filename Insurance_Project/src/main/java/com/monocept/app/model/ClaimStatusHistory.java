@@ -32,7 +32,7 @@ public class ClaimStatusHistory {
     private Long id;
 
     @NotNull(message = "Claim is required")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(
         name = "claim_id",
         nullable = false,
@@ -59,7 +59,7 @@ public class ClaimStatusHistory {
     private LocalDateTime changedAt;
 
     @NotNull(message = "Updated by user is required")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(
         name = "updated_by",
         nullable = false,

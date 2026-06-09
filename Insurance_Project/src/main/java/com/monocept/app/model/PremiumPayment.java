@@ -66,7 +66,7 @@ public class PremiumPayment {
     private LocalDateTime updatedAt;
 
     @NotNull(message = "Policy is required")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "policy_id", nullable = false,
         foreignKey = @ForeignKey(name = "fk_payment_policy"))
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "premiumPayments"})

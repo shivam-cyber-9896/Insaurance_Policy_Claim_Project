@@ -9,25 +9,23 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.monocept.app.service.CloudinaryService;
+import com.monocept.app.service.implementation.CloudinaryServiceImple;
 
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/files")
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class FileController {
 
-    private final CloudinaryService cloudinaryService;
+	//private final CloudinaryServiceImpl cloudinaryService;
 
-    @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(
-            @RequestParam("file") MultipartFile file)
-            throws IOException {
-
-        String url =
-                cloudinaryService.uploadFile(file);
-
-        return ResponseEntity.ok(url);
-    }
+	/*
+	 * @PostMapping("/upload") public ResponseEntity<String>
+	 * uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
+	 * 
+	 * String url = cloudinaryService.uploadFile(file);
+	 * 
+	 * return ResponseEntity.ok(url); }
+	 */
 }
