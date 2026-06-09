@@ -36,10 +36,10 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedAdmin() {
         String email = "admin@insurance.com";
-        if (!userRepository.findByMail(email).isPresent()) {
+        if (!userRepository.findByEmail(email).isPresent()) {
             User admin = new User();
             admin.setFullName("System Admin");
-            admin.setMail(email);
+            admin.setEmail(email);
             admin.setPassword(passwordEncoder.encode("Admin@12345"));
             admin.setPhoneNumber("9876543210");
             admin.setRole(Role.ADMIN);
@@ -51,10 +51,10 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedAgent() {
         String email = "agent@insurance.com";
-        if (!userRepository.findByMail(email).isPresent()) {
+        if (!userRepository.findByEmail(email).isPresent()) {
             User agent = new User();
             agent.setFullName("Company Agent");
-            agent.setMail(email);
+            agent.setEmail(email);
             agent.setPassword(passwordEncoder.encode("Agent@12345"));
             agent.setPhoneNumber("8765432109");
             agent.setRole(Role.AGENT);
@@ -66,10 +66,10 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedCustomer() {
         String email = "customer@insurance.com";
-        if (!userRepository.findByMail(email).isPresent()) {
+        if (!userRepository.findByEmail(email).isPresent()) {
             User user = new User();
             user.setFullName("John Doe");
-            user.setMail(email);
+            user.setEmail(email);
             user.setPassword(passwordEncoder.encode("Customer@12345"));
             user.setPhoneNumber("7654321098");
             user.setRole(Role.CUSTOMER);

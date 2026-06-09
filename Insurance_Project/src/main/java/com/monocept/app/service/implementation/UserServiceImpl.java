@@ -92,7 +92,7 @@ public class UserServiceImpl implements UserService {
 	public UserResponseDto createAgent(UserRequestDto dto) {
 		log.info("Creating agent");
 
-		if (userRepository.existsByMail(dto.getEmail())) {
+		if (userRepository.existsByEmail(dto.getEmail())) {
 
 			throw new DuplicateResourceException("Email already exists");
 		}

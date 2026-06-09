@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ClaimResponseDto {
-    private Long id;
     private String claimNumber;
     private String policyNumber;
     private String customerName;

@@ -40,7 +40,7 @@ public class AuthServiceImpl implements AuthService {
 			throw new com.monocept.app.exception.InvalidOperationException("Public registration is allowed only for customers");
 		}
 
-		if (userRepository.existsByMail(dto.getEmail())) {
+		if (userRepository.existsByEmail(dto.getEmail())) {
 
 			throw new DuplicateResourceException("Email already exists");
 		}
@@ -63,12 +63,12 @@ public class AuthServiceImpl implements AuthService {
 
 		authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword()));
 
-		User user = userRepository.findByMail(dto.getEmail())
+		User user = userRepository.findByEmail(dto.getEmail())
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-		String token = jwtService.generateToken(user.getMail());
+		String token = jwtService.generateToken(user.getEmail());
 
-		return LoginResponseDto.builder().token(token).email(user.getMail()).fullName(user.getFullName())
+		return LoginResponseDto.builder().token(token).email(user.getEmail()).fullName(user.getFullName())
 				.role(user.getRole()).build();
 	}
 }

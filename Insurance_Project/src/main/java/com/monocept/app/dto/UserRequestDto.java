@@ -32,7 +32,7 @@ public class UserRequestDto {
         regexp = "^[6-9]\\d{9}$",
         message = "Mobile number must be 10 digits"
     )
-    private String mobileNumber;
+    private String phoneNumber;
 
     @NotNull(message = "Role is required")
     private Role role;

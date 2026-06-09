@@ -37,16 +37,16 @@ public class ClaimHistoryServiceImpl implements ClaimHistoryService {
 				.orElseThrow(() -> new ResourceNotFoundException("Claim not found"));
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User loggedInUser = userRepository.findByMail(email)
+		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
-			if (!claim.getPolicy().getCustomer().getUser().getMail().equals(email)) {
+			if (!claim.getPolicy().getCustomer().getUser().getEmail().equals(email)) {
 				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to view the history of this claim");
 			}
 		}
 
-		return historyRepository.findByClaimOrderByUpdatedDateDesc(claim).stream()
+		return historyRepository.findByClaimOrderByChangedAtDesc(claim).stream()
 				.map(history -> modelMapper.map(history, ClaimHistoryResponseDto.class)).toList();
 	}
 }

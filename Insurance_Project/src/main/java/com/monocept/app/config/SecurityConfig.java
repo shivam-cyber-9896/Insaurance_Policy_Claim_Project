@@ -36,9 +36,11 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth
 
 						.requestMatchers("/api/auth/**").permitAll()
-
-						.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products/**", "/api/plans/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
-						.requestMatchers("/api/products/**", "/api/plans/**").hasRole("ADMIN")
+						.requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/api-docs/**")
+						.permitAll()
+						.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products/**", "/api/plans/**")
+						.hasAnyRole("ADMIN", "AGENT", "CUSTOMER").requestMatchers("/api/products/**", "/api/plans/**")
+						.hasRole("ADMIN")
 
 						.requestMatchers("/api/users/**").hasRole("ADMIN")
 
@@ -75,7 +77,7 @@ public class SecurityConfig {
 						.requestMatchers("/api/claim-history/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
 
 						.anyRequest().authenticated())
-				
+
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
