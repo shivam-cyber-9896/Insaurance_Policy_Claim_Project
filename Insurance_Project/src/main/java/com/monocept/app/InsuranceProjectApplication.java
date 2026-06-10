@@ -9,5 +9,5 @@ public class InsuranceProjectApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(InsuranceProjectApplication.class, args);
 	}
-
+// adding extra line here
 }
