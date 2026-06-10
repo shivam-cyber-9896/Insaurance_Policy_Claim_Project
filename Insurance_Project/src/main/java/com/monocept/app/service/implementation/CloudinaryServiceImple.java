@@ -5,7 +5,7 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 
 import lombok.RequiredArgsConstructor;
-
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,16 +22,32 @@ public class CloudinaryServiceImple  {
     
 
     public String uploadFile(MultipartFile file, String folder) throws IOException {
+        String originalFilename = file.getOriginalFilename();
+        String extension = (originalFilename != null && originalFilename.contains("."))
+            ? originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toLowerCase()
+            : "";
+
+        String resourceType = switch (extension) {
+            case "jpg", "jpeg", "png", "gif", "webp" -> "image";
+            case "mp4", "mov", "avi"                 -> "video";
+            default                                   -> "raw";
+        };
+
+        String publicId = folder + "/" + UUID.randomUUID().toString();
+
         Map<?, ?> result = cloudinary.uploader().upload(
             file.getBytes(),
             ObjectUtils.asMap(
-                "folder",        folder,
-                "resource_type", "auto"   // handles PDF, images, docs
+                "public_id",       publicId,
+                "resource_type",   resourceType,
+                "access_mode",     "public",
+                "format",          extension,    // force the extension
+                "use_filename",    false,
+                "unique_filename", false
             )
         );
         return (String) result.get("secure_url");
     }
-
     public void deleteFile(String publicUrl) throws IOException {
         String publicId = extractPublicId(publicUrl);
         cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());

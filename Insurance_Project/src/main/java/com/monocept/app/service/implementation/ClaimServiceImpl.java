@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -50,6 +51,7 @@ public class ClaimServiceImpl implements ClaimService {
 	private final ClaimDocumentRepository claimDocumentRepository;
 
 	@Override
+	@Transactional
 	public ClaimResponseDto createClaim(ClaimRequestDto dto, List<MultipartFile> files) throws IOException {
 
 		log.info("Creating claim");
@@ -242,13 +244,29 @@ public class ClaimServiceImpl implements ClaimService {
 
 	private ClaimResponseDto convertToDto(Claim claim) {
 
-		ClaimResponseDto dto = modelMapper.map(claim, ClaimResponseDto.class);
+	    List<ClaimDocumentResponseDto> documentDtos = claimDocumentRepository.findByClaimId(claim.getId())
+	        .stream()
+	        .map(doc -> ClaimDocumentResponseDto.builder()
+	            .id(doc.getId())
+	            .documentName(doc.getDocumentName())
+	            .documentType(doc.getDocumentType())
+	            .documentReference(doc.getDocumentReference())
+	            .build())
+	        .collect(Collectors.toList());
 
-		dto.setPolicyNumber(claim.getPolicy().getPolicyNumber());
-
-		dto.setCustomerName(claim.getPolicy().getCustomer().getUser().getFullName());
-
-		return dto;
+	    return ClaimResponseDto.builder()
+	        .claimNumber(claim.getClaimNumber())
+	        .policyNumber(claim.getPolicy().getPolicyNumber())
+	        .customerName(claim.getPolicy().getCustomer().getUser().getFullName())
+	        .claimAmount(claim.getClaimAmount())
+	        .claimReason(claim.getClaimReason())
+	        .incidentDate(claim.getIncidentDate())
+	        .claimStatus(claim.getClaimStatus())
+	        .agentRemarks(claim.getAgentRemarks())
+	        .adminRemarks(claim.getAdminRemarks())
+	        .createdAt(claim.getCreatedAt())
+	        .updatedAt(claim.getUpdatedAt())
+	        .documents(documentDtos)
+	        .build();
 	}
-
 }
