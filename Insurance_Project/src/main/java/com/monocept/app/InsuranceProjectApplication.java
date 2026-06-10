@@ -12,4 +12,5 @@ public class InsuranceProjectApplication {
 		SpringApplication.run(InsuranceProjectApplication.class, args);
 	}
 // adding extra line here
+// adding extra line here again
 }
