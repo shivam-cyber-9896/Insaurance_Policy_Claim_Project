@@ -2,6 +2,7 @@ package com.monocept.app.service.implementation;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,6 +14,7 @@ import com.monocept.app.dto.LoginRequestDto;
 import com.monocept.app.dto.LoginResponseDto;
 import com.monocept.app.dto.UserRequestDto;
 import com.monocept.app.dto.UserResponseDto;
+import com.monocept.app.dto.OtpRequestDto;
 import com.monocept.app.exception.CustomExceptions.DuplicateResourceException;
 import com.monocept.app.exception.ResourceNotFoundException;
 import com.monocept.app.model.User;
@@ -21,6 +23,7 @@ import com.monocept.app.security.JwtService;
 import com.monocept.app.service.AuthService;
 import com.monocept.app.service.EmailService;
 import com.monocept.app.service.EmailTempleteService;
+import com.monocept.app.service.OtpService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,36 +40,88 @@ public class AuthServiceImpl implements AuthService {
 	private final ModelMapper modelMapper;
 	private final EmailService emailService;
 	private final EmailTempleteService emailTemplateService;
+	private final OtpService otpService;
 
 	@Override
 	public UserResponseDto register(UserRequestDto dto) {
 
-		log.info("Registering user");
+		log.info("Registering user: {}", dto.getEmail());
 
 		if (dto.getRole() != null && dto.getRole() != com.monocept.app.enums.Role.CUSTOMER) {
 			throw new com.monocept.app.exception.InvalidOperationException(
 					"Public registration is allowed only for customers");
 		}
 
-		if (userRepository.existsByEmail(dto.getEmail())) {
+		Optional<User> existingUserOpt = userRepository.findByEmail(dto.getEmail());
+		if (existingUserOpt.isPresent()) {
+			User existingUser = existingUserOpt.get();
+			if (existingUser.isActive()) {
+				throw new DuplicateResourceException("Email already exists");
+			} else {
+				log.info("User already exists but is inactive. Updating details and resending OTP.");
+				existingUser.setFullName(dto.getFullName());
+				existingUser.setPassword(passwordEncoder.encode(dto.getPassword()));
+				existingUser.setPhoneNumber(dto.getPhoneNumber());
+				existingUser.setRole(com.monocept.app.enums.Role.CUSTOMER);
+				User savedUser = userRepository.save(existingUser);
 
-			throw new DuplicateResourceException("Email already exists");
+				otpService.sendOtp(savedUser.getEmail());
+
+				log.info("Inactive user registration details updated and OTP sent.");
+				return modelMapper.map(savedUser, UserResponseDto.class);
+			}
 		}
 
 		User user = modelMapper.map(dto, User.class);
 
 		user.setPassword(passwordEncoder.encode(dto.getPassword()));
 		user.setRole(com.monocept.app.enums.Role.CUSTOMER);
-		user.setActive(true);
+		user.setActive(false); // Make inactive initially
 
 		User savedUser = userRepository.save(user);
-		// send welcome email
-		emailService.sendEmail(savedUser.getEmail(), "Welcome to Insurance Portal",
-				emailTemplateService.welcomeTemplate(savedUser.getFullName(), savedUser.getEmail()));
+		
+		otpService.sendOtp(savedUser.getEmail());
 
-		log.info("User registered successfully");
+		log.info("User registered successfully (inactive). OTP sent.");
 
 		return modelMapper.map(savedUser, UserResponseDto.class);
+	}
+
+	@Override
+	public void verifyRegistration(OtpRequestDto dto) {
+		log.info("Verifying registration OTP for email: {}", dto.getEmail());
+
+		User user = userRepository.findByEmail(dto.getEmail())
+				.orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + dto.getEmail()));
+
+		if (user.isActive()) {
+			throw new com.monocept.app.exception.InvalidOperationException("User is already active");
+		}
+
+		otpService.verifyOtp(dto.getEmail(), dto.getOtp());
+
+		user.setActive(true);
+		userRepository.save(user);
+
+		// Send welcome email
+		emailService.sendEmail(user.getEmail(), "Welcome to Insurance Portal",
+				emailTemplateService.welcomeTemplate(user.getFullName(), user.getEmail()));
+
+		log.info("User account activated successfully");
+	}
+
+	@Override
+	public void resendOtp(String email) {
+		log.info("Resending OTP for email: {}", email);
+
+		User user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+
+		if (user.isActive()) {
+			throw new com.monocept.app.exception.InvalidOperationException("User is already active");
+		}
+
+		otpService.sendOtp(email);
 	}
 
 	@Override
@@ -76,6 +131,10 @@ public class AuthServiceImpl implements AuthService {
 
 		User user = userRepository.findByEmail(dto.getEmail())
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		if (!user.isActive()) {
+			throw new com.monocept.app.exception.InvalidOperationException("User is inactive. Please verify your OTP first.");
+		}
 
 		String token = jwtService.generateToken(user.getEmail());
 		// send login alert email
@@ -87,4 +146,4 @@ public class AuthServiceImpl implements AuthService {
 		return LoginResponseDto.builder().token(token).email(user.getEmail()).fullName(user.getFullName())
 				.role(user.getRole()).build();
 	}
-}
+}

@@ -38,6 +38,59 @@
 					"response": []
 				},
 				{
+					"name": "Verify OTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"bob.vance@insurance.com\",\n    \"otp\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/verify-otp",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"verify-otp"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Resend OTP",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/resend-otp?email=bob.vance@insurance.com",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"resend-otp"
+							],
+							"query": [
+								{
+									"key": "email",
+									"value": "bob.vance@insurance.com"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Login User",
 					"request": {
 						"method": "POST",
