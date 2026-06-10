@@ -64,7 +64,7 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 		plan.setCoverageAmount(dto.getCoverageAmount());
 		plan.setPremiumAmount(dto.getPremiumAmount());
 		plan.setPremiumType(dto.getPremiumType());
-		plan.setDuration(dto.getDuration());
+		plan.setDurationYears(dto.getDurationYears());
 		plan.setTermsAndConditions(dto.getTermsAndConditions());
 		plan.setActive(dto.isActive());
 

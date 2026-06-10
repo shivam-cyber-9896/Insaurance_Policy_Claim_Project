@@ -1,87 +1,110 @@
 package com.monocept.app.model;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.monocept.app.enums.PremiumType;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import lombok.*;
 
 @Entity
-@Table(name = "Policy Plans")
-@Data
+@Table(
+    name = "policy_plans",
+    indexes = {
+        @Index(name = "idx_plan_name",       columnList = "plan_name"),
+        @Index(name = "idx_plan_product",    columnList = "product_id"),
+        @Index(name = "idx_plan_type",       columnList = "premium_type"),
+        @Index(name = "idx_plan_active",     columnList = "active")
+    }
+)
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@ToString(exclude = {"insuranceProduct", "policies"})
+@EqualsAndHashCode(exclude = {"insuranceProduct", "policies"})
 public class PolicyPlan {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "Plan Id")
+    @Column(name = "plan_id")
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "Product Id", nullable = false)
+    @NotNull(message = "Insurance product is required")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+        name = "product_id",
+        nullable = false,
+        foreignKey = @ForeignKey(name = "fk_plan_product")
+    )
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "policyPlans"})
     private InsuranceProduct insuranceProduct;
 
     @NotBlank(message = "Plan name is required")
-    @Column(name = "Plan Name")
+    @Size(min = 3, max = 100, message = "Plan name must be between 3 and 100 characters")
+    @Pattern(
+        regexp = "^[a-zA-Z0-9 &()\\-]+$",
+        message = "Plan name can only contain letters, digits, spaces, &, (), or hyphens"
+    )
+    @Column(name = "plan_name", nullable = false, length = 100)
     private String planName;
 
     @NotNull(message = "Coverage amount is required")
-    @DecimalMin(value = "0.01",
-            message = "Coverage amount must be greater than zero")
-    @Column(name = "Coverage Amount")
-    private Double coverageAmount;
+    @DecimalMin(value = "0.01", inclusive = true, message = "Coverage amount must be greater than zero")
+    @DecimalMax(value = "99999999.99", message = "Coverage amount exceeds maximum allowed limit")
+    @Digits(integer = 8, fraction = 2, message = "Coverage amount must have at most 8 integer digits and 2 decimal places")
+    @Column(name = "coverage_amount", nullable = false, precision = 10, scale = 2)
+    private BigDecimal coverageAmount;
 
     @NotNull(message = "Premium amount is required")
-    @DecimalMin(value = "0.01",
-            message = "Premium amount must be greater than zero")
-    @Column(name = "Premium Amount")
-    private Double premiumAmount;
+    @DecimalMin(value = "0.01", inclusive = true, message = "Premium amount must be greater than zero")
+    @DecimalMax(value = "999999.99", message = "Premium amount exceeds maximum allowed limit")
+    @Digits(integer = 6, fraction = 2, message = "Premium amount must have at most 6 integer digits and 2 decimal places")
+    @Column(name = "premium_amount", nullable = false, precision = 8, scale = 2)
+    private BigDecimal premiumAmount;
 
+    @NotNull(message = "Premium type is required")
     @Enumerated(EnumType.STRING)
-    @Column(name = "Premium Type", nullable=false)
+    @Column(name = "premium_type", nullable = false, length = 20)
     private PremiumType premiumType;
 
-    @Column(name = "Duration")
-    @Min(value = 1, message = "Duration cannot be less than 1 year")
-    private Integer duration;
+    @NotNull(message = "Duration is required")
+    @Min(value = 1, message = "Duration must be at least 1 year")
+    @Max(value = 40, message = "Duration cannot exceed 40 years")
+    @Column(name = "duration_years", nullable = false)
+    private Integer durationYears;
 
-    @Column(name = "Terms and Conditions", length = 5000)
-    @NotBlank
+    @NotBlank(message = "Terms and conditions are required")
+    @Size(min = 20, max = 5000, message = "Terms and conditions must be between 20 and 5000 characters")
+    @Column(name = "terms_and_conditions", nullable = false, length = 5000)
     private String termsAndConditions;
 
-    @Column(name = "Active Status")
+    @Column(name = "active", nullable = false)
+    @Builder.Default
     private boolean active = true;
 
     @CreationTimestamp
-    @Column(name = "Created Date")
-    private LocalDateTime createdDate;
+    @Column(name = "created_at", updatable = false, nullable = false)
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "Updated Date")
-    private LocalDateTime updatedDate;
-    
-    @OneToMany(mappedBy = "policyPlan")
-    private List<Policy> policies;
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @OneToMany(
+        mappedBy = "policyPlan",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true,
+        fetch = FetchType.EAGER
+    )
+    @JsonIgnore
+    @Builder.Default
+    private List<Policy> policies = new ArrayList<>();
 }

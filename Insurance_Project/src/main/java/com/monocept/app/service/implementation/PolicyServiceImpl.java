@@ -17,6 +17,8 @@ import com.monocept.app.dto.PolicyIssueRequestDto;
 import com.monocept.app.model.Policy;
 import com.monocept.app.model.PolicyPlan;
 import com.monocept.app.enums.PolicyStatus;
+import com.monocept.app.service.EmailService;
+import com.monocept.app.service.EmailTempleteService;
 import com.monocept.app.service.PolicyService;
 import com.monocept.app.dto.PolicyPurchaseRequestDto;
 import com.monocept.app.dto.PolicyResponseDto;
@@ -39,6 +41,9 @@ public class PolicyServiceImpl implements PolicyService {
 	private final UserRepository userRepository;
 	private final ModelMapper modelMapper;
 
+	private final EmailService emailService;
+	private final EmailTempleteService emailTemplateService;
+
 	@Override
 	public PolicyResponseDto purchasePolicy(PolicyPurchaseRequestDto dto) {
 
@@ -46,7 +51,7 @@ public class PolicyServiceImpl implements PolicyService {
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
-		User user = userRepository.findByMail(email)
+		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		Customer customer = customerRepository.findByUser(user)
@@ -60,11 +65,13 @@ public class PolicyServiceImpl implements PolicyService {
 		policy.setCustomer(customer);
 		policy.setPolicyPlan(plan);
 
-		policy.setPolicyNumber(UUID.randomUUID().toString().substring(0, 10));
+		policy.setPolicyNumber(
+				"POL-" + java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"))
+						+ "-" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase());
 
 		policy.setStartDate(dto.getStartDate());
 
-		policy.setEndDate(dto.getStartDate().plusYears(plan.getDuration()));
+		policy.setEndDate(dto.getStartDate().plusYears(plan.getDurationYears()));
 
 		policy.setPolicyStatus(PolicyStatus.PENDING_PAYMENT);
 
@@ -72,6 +79,10 @@ public class PolicyServiceImpl implements PolicyService {
 
 		Policy savedPolicy = policyRepository.save(policy);
 
+		emailService.sendEmail(customer.getUser().getEmail(), "Policy Created - " + savedPolicy.getPolicyNumber(),
+				emailTemplateService.policyCreatedTemplate(customer.getUser().getFullName(),
+						savedPolicy.getPolicyNumber(), plan.getPlanName(), savedPolicy.getStartDate().toString(),
+						savedPolicy.getEndDate().toString(), plan.getPremiumAmount().toString()));
 		log.info("Policy created successfully");
 
 		return convertToDto(savedPolicy);
@@ -90,14 +101,20 @@ public class PolicyServiceImpl implements PolicyService {
 		Policy policy = new Policy();
 		policy.setCustomer(customer);
 		policy.setPolicyPlan(plan);
-		policy.setPolicyNumber(UUID.randomUUID().toString().substring(0, 10));
+		policy.setPolicyNumber(
+				"POL-" + java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"))
+						+ "-" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase());
 		policy.setStartDate(dto.getStartDate());
-		policy.setEndDate(dto.getStartDate().plusYears(plan.getDuration()));
+		policy.setEndDate(dto.getStartDate().plusYears(plan.getDurationYears()));
 		policy.setPolicyStatus(PolicyStatus.PENDING_PAYMENT);
 		policy.setTotalPremiumPaid(BigDecimal.ZERO);
 
 		Policy savedPolicy = policyRepository.save(policy);
 
+		emailService.sendEmail(customer.getUser().getEmail(), "Policy Issued - " + savedPolicy.getPolicyNumber(),
+				emailTemplateService.policyCreatedTemplate(customer.getUser().getFullName(),
+						savedPolicy.getPolicyNumber(), plan.getPlanName(), savedPolicy.getStartDate().toString(),
+						savedPolicy.getEndDate().toString(), plan.getPremiumAmount().toString()));
 		log.info("Policy issued successfully");
 
 		return convertToDto(savedPolicy);
@@ -109,12 +126,13 @@ public class PolicyServiceImpl implements PolicyService {
 		Policy policy = findPolicyById(id);
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User loggedInUser = userRepository.findByMail(email)
+		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
-			if (!policy.getCustomer().getUser().getMail().equals(email)) {
-				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to view this policy");
+			if (!policy.getCustomer().getUser().getEmail().equals(email)) {
+				throw new com.monocept.app.exception.InvalidOperationException(
+						"You are not authorized to view this policy");
 			}
 		}
 
@@ -134,14 +152,12 @@ public class PolicyServiceImpl implements PolicyService {
 	@Override
 	public Page<PolicyResponseDto> getMyPolicies(Pageable pageable) {
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User user = userRepository.findByMail(email)
+		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 		Customer customer = customerRepository.findByUser(user)
 				.orElseThrow(() -> new ResourceNotFoundException("Customer profile not found"));
 		return policyRepository.findByCustomer(customer, pageable).map(this::convertToDto);
 	}
-
-	
 
 	private Policy findPolicyById(Long id) {
 
@@ -165,5 +181,4 @@ public class PolicyServiceImpl implements PolicyService {
 		return policyRepository.findAll(pageable).map(this::convertToDto);
 	}
 
-	
 }

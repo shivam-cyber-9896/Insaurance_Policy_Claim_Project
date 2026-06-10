@@ -19,6 +19,8 @@ import com.monocept.app.model.User;
 import com.monocept.app.repository.CustomerRepository;
 import com.monocept.app.repository.UserRepository;
 import com.monocept.app.service.CustomerService;
+import com.monocept.app.service.EmailService;
+import com.monocept.app.service.EmailTempleteService;
 
 
 
@@ -30,7 +32,9 @@ public class CustomerServiceImpl implements CustomerService {
 	private final CustomerRepository customerRepository;
 	private final UserRepository userRepository;
 	private final ModelMapper modelMapper;
-
+	// add to injections
+	private final EmailService emailService;
+	private final EmailTempleteService emailTemplateService;
 	@Override
 	public CustomerResponseDto createProfile(
 	        CustomerRequestDto dto) {
@@ -42,7 +46,7 @@ public class CustomerServiceImpl implements CustomerService {
 	            .getAuthentication()
 	            .getName();
 
-	    User user = userRepository.findByMail(email)
+	    User user = userRepository.findByEmail(email)
 	            .orElseThrow(() ->
 	                    new ResourceNotFoundException(
 	                            "User not found"));
@@ -64,7 +68,11 @@ public class CustomerServiceImpl implements CustomerService {
 
 	    Customer savedCustomer =
 	            customerRepository.save(customer);
-
+	    emailService.sendEmail(
+	    	    savedCustomer.getUser().getEmail(),
+	    	    "Customer Profile Created",
+	    	    emailTemplateService.customerProfileCreatedTemplate(savedCustomer.getUser().getFullName())
+	    	);
 	    log.info("Customer profile created successfully");
 
 	    return convertToDto(savedCustomer);
@@ -78,11 +86,11 @@ public class CustomerServiceImpl implements CustomerService {
 		Customer customer = findCustomerById(id);
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User loggedInUser = userRepository.findByMail(email)
+		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
-			if (!customer.getUser().getMail().equals(email)) {
+			if (!customer.getUser().getEmail().equals(email)) {
 				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to update this profile");
 			}
 		}
@@ -102,6 +110,11 @@ public class CustomerServiceImpl implements CustomerService {
 		customer.setNomineeRelation(dto.getNomineeRelation());
 
 		Customer updatedCustomer = customerRepository.save(customer);
+		emailService.sendEmail(
+			    updatedCustomer.getUser().getEmail(),
+			    "Customer Profile Updated",
+			    emailTemplateService.customerProfileUpdatedTemplate(updatedCustomer.getUser().getFullName())
+			);
 
 		return convertToDto(updatedCustomer);
 	}
@@ -112,11 +125,11 @@ public class CustomerServiceImpl implements CustomerService {
 		Customer customer = findCustomerById(id);
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User loggedInUser = userRepository.findByMail(email)
+		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
-			if (!customer.getUser().getMail().equals(email)) {
+			if (!customer.getUser().getEmail().equals(email)) {
 				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to view this profile");
 			}
 		}
@@ -127,7 +140,7 @@ public class CustomerServiceImpl implements CustomerService {
 	@Override
 	public CustomerResponseDto getMyProfile() {
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User user = userRepository.findByMail(email)
+		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 		Customer customer = customerRepository.findByUser(user)
 				.orElseThrow(() -> new ResourceNotFoundException("Customer profile not found"));
@@ -156,11 +169,11 @@ public class CustomerServiceImpl implements CustomerService {
 
 		CustomerResponseDto dto = modelMapper.map(customer, CustomerResponseDto.class);
 
-		dto.setId(customer.getUser().getId());
+	
 
 		dto.setFullName(customer.getUser().getFullName());
 
-		dto.setEmail(customer.getUser().getMail());
+		dto.setEmail(customer.getUser().getEmail());
 
 		dto.setPhoneNumber(customer.getUser().getPhoneNumber());
 

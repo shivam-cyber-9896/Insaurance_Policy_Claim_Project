@@ -3,6 +3,7 @@ package com.monocept.app.service.implementation;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -14,6 +15,7 @@ import com.monocept.app.dto.PaymentRequestDto;
 import com.monocept.app.dto.PaymentResponseDto;
 import com.monocept.app.enums.PaymentStatus;
 import com.monocept.app.enums.PolicyStatus;
+import com.monocept.app.enums.Role;
 import com.monocept.app.exception.*;
 import com.monocept.app.exception.CustomExceptions.DuplicateResourceException;
 import com.monocept.app.model.Policy;
@@ -24,8 +26,11 @@ import com.monocept.app.repository.PolicyRepository;
 import com.monocept.app.repository.PremiumPaymentRepository;
 import com.monocept.app.repository.UserRepository;
 import com.monocept.app.repository.CustomerRepository;
+import com.monocept.app.service.EmailService;
+import com.monocept.app.service.EmailTempleteService;
 import com.monocept.app.service.PaymentService;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,48 +44,98 @@ public class PaymentServiceImpl implements PaymentService {
 	private final UserRepository userRepository;
 	private final CustomerRepository customerRepository;
 	private final ModelMapper modelMapper;
-
+	// add to injections
+	private final EmailService emailService;
+	private final EmailTempleteService emailTemplateService;
 	@Override
+	@Transactional
 	public PaymentResponseDto recordPayment(PaymentRequestDto dto) {
 
 		log.info("Recording payment");
 
-		if (paymentRepository.existsByTransactionReference(dto.getTransactionReference())) {
+		/*
+		 * // Check duplicate transaction reference if
+		 * (paymentRepository.existsByTransactionReference(dto.getTransactionReference()
+		 * )) { throw new
+		 * DuplicateResourceException("Transaction reference already exists"); }
+		 */
 
-			throw new DuplicateResourceException("Transaction reference already exists");
-		}
-
+		// Find policy
 		Policy policy = policyRepository.findById(dto.getPolicyId())
 				.orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
 
+		// Check logged-in user
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User loggedInUser = userRepository.findByMail(email)
+
+		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
-			if (!policy.getCustomer().getUser().getMail().equals(email)) {
-				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to make payment for this policy");
+		// Customer can only pay for own policy
+		if (loggedInUser.getRole() == Role.CUSTOMER) {
+
+			if (!policy.getCustomer().getUser().getEmail().equals(email)) {
+
+				throw new InvalidOperationException("You are not authorized to make payment for this policy");
 			}
 		}
 
+		// Prevent payment if already active
+		if (policy.getPolicyStatus() == PolicyStatus.ACTIVE) {
+			throw new InvalidOperationException("Premium already paid for this policy");
+		}
+
+		// Validate exact premium amount
+		BigDecimal expectedPremium = policy.getPolicyPlan().getPremiumAmount();
+
+		if (dto.getAmount().compareTo(expectedPremium) != 0) {
+
+			throw new InvalidOperationException("Premium amount must be exactly ₹" + expectedPremium);
+		}
+
+		// Map DTO to Entity
 		PremiumPayment payment = modelMapper.map(dto, PremiumPayment.class);
 
 		payment.setPolicy(policy);
-
+		payment.setTransactionReference("TXN-"
+			    + java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"))
+			    + "-" + UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase());		// Save Payment
 		PremiumPayment savedPayment = paymentRepository.save(payment);
 
+		// Update Policy
 		if (savedPayment.getPaymentStatus() == PaymentStatus.SUCCESS) {
 
-			policy.setTotalPremiumPaid(policy.getTotalPremiumPaid().add(savedPayment.getAmount()));
+		    policy.setTotalPremiumPaid(policy.getTotalPremiumPaid().add(savedPayment.getAmount()));
 
-			if (policy.getTotalPremiumPaid()
-					.compareTo(BigDecimal.valueOf(policy.getPolicyPlan().getPremiumAmount())) >= 0) {
+		    if (policy.getTotalPremiumPaid().compareTo(expectedPremium) >= 0) {
+		        policy.setPolicyStatus(PolicyStatus.ACTIVE);
+		    }
 
-				policy.setPolicyStatus(PolicyStatus.ACTIVE);
-			}
+		    policyRepository.save(policy);
 
-			policyRepository.save(policy);
-		}
+		    // send payment success email
+		    emailService.sendEmail(
+		        policy.getCustomer().getUser().getEmail(),
+		        "Payment Successful - " + policy.getPolicyNumber(),
+		        emailTemplateService.paymentSuccessTemplate(
+		            policy.getCustomer().getUser().getFullName(),
+		            policy.getPolicyNumber(),
+		            savedPayment.getAmount().toString(),
+		            savedPayment.getTransactionReference(),
+		            savedPayment.getPaymentDate().toString()
+		        )
+		    );}
+		    if (savedPayment.getPaymentStatus() == PaymentStatus.FAILED) {
+		        emailService.sendEmail(
+		            policy.getCustomer().getUser().getEmail(),
+		            "Payment Failed - " + policy.getPolicyNumber(),
+		            emailTemplateService.paymentFailedTemplate(
+		                policy.getCustomer().getUser().getFullName(),
+		                policy.getPolicyNumber(),
+		                savedPayment.getAmount().toString()
+		            )
+		        );
+		    }
+		
 
 		return convertToDto(savedPayment);
 	}
@@ -91,12 +146,13 @@ public class PaymentServiceImpl implements PaymentService {
 		PremiumPayment payment = findPaymentById(id);
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User loggedInUser = userRepository.findByMail(email)
+		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
-			if (!payment.getPolicy().getCustomer().getUser().getMail().equals(email)) {
-				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to view this payment");
+			if (!payment.getPolicy().getCustomer().getUser().getEmail().equals(email)) {
+				throw new com.monocept.app.exception.InvalidOperationException(
+						"You are not authorized to view this payment");
 			}
 		}
 
@@ -110,12 +166,13 @@ public class PaymentServiceImpl implements PaymentService {
 				.orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User loggedInUser = userRepository.findByMail(email)
+		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
-			if (!policy.getCustomer().getUser().getMail().equals(email)) {
-				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to view payments for this policy");
+			if (!policy.getCustomer().getUser().getEmail().equals(email)) {
+				throw new com.monocept.app.exception.InvalidOperationException(
+						"You are not authorized to view payments for this policy");
 			}
 		}
 
@@ -131,7 +188,7 @@ public class PaymentServiceImpl implements PaymentService {
 	@Override
 	public Page<PaymentResponseDto> getMyPayments(Pageable pageable) {
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User user = userRepository.findByMail(email)
+		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 		Customer customer = customerRepository.findByUser(user)
 				.orElseThrow(() -> new ResourceNotFoundException("Customer profile not found"));

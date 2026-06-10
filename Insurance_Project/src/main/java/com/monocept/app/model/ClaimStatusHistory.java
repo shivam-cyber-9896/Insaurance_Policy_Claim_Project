@@ -1,58 +1,70 @@
 package com.monocept.app.model;
 
 import java.time.LocalDateTime;
-
 import org.hibernate.annotations.CreationTimestamp;
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.monocept.app.enums.ClaimStatus;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import lombok.*;
 
 @Entity
-@Table(name = "Claim Status History")
-@Data
+@Table(
+    name = "claim_status_history",
+    indexes = {
+        @Index(name = "idx_csh_claim_id",    columnList = "claim_id"),
+        @Index(name = "idx_csh_new_status",  columnList = "new_status"),
+        @Index(name = "idx_csh_updated_by",  columnList = "updated_by")
+    }
+)
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@ToString(exclude = {"claim", "updatedBy"})
+@EqualsAndHashCode(exclude = {"claim", "updatedBy"})
 public class ClaimStatusHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "History Id")
+    @Column(name = "history_id")
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "Claim Id", nullable = false)
+    @NotNull(message = "Claim is required")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(
+        name = "claim_id",
+        nullable = false,
+        foreignKey = @ForeignKey(name = "fk_csh_claim")
+    )
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "statusHistory"})
     private Claim claim;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "Previous Status")
+    @Column(name = "previous_status", length = 20)
     private ClaimStatus previousStatus;
 
+    @NotNull(message = "New status is required")
     @Enumerated(EnumType.STRING)
-    @Column(name = "New Status")
+    @Column(name = "new_status", nullable = false, length = 20)
     private ClaimStatus newStatus;
 
-    @Column(name = "Remarks", length = 2000)
+    @Size(max = 2000, message = "Remarks must not exceed 2000 characters")
+    @Column(name = "remarks", length = 2000)
     private String remarks;
 
-
     @CreationTimestamp
-    @Column(name = "Updated Date")
-    private LocalDateTime updatedDate;
-    
-    @ManyToOne
-    @JoinColumn(name = "Updated By", nullable = false)
+    @Column(name = "changed_at", updatable = false, nullable = false)
+    private LocalDateTime changedAt;
+
+    @NotNull(message = "Updated by user is required")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(
+        name = "updated_by",
+        nullable = false,
+        foreignKey = @ForeignKey(name = "fk_csh_updated_by")
+    )
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "password"})
     private User updatedBy;
 }

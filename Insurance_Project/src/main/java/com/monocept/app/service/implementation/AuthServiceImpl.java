@@ -1,5 +1,8 @@
 package com.monocept.app.service.implementation;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,6 +19,8 @@ import com.monocept.app.model.User;
 import com.monocept.app.repository.UserRepository;
 import com.monocept.app.security.JwtService;
 import com.monocept.app.service.AuthService;
+import com.monocept.app.service.EmailService;
+import com.monocept.app.service.EmailTempleteService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +35,8 @@ public class AuthServiceImpl implements AuthService {
 	private final AuthenticationManager authenticationManager;
 	private final JwtService jwtService;
 	private final ModelMapper modelMapper;
+	private final EmailService emailService;
+	private final EmailTempleteService emailTemplateService;
 
 	@Override
 	public UserResponseDto register(UserRequestDto dto) {
@@ -37,10 +44,11 @@ public class AuthServiceImpl implements AuthService {
 		log.info("Registering user");
 
 		if (dto.getRole() != null && dto.getRole() != com.monocept.app.enums.Role.CUSTOMER) {
-			throw new com.monocept.app.exception.InvalidOperationException("Public registration is allowed only for customers");
+			throw new com.monocept.app.exception.InvalidOperationException(
+					"Public registration is allowed only for customers");
 		}
 
-		if (userRepository.existsByMail(dto.getMail())) {
+		if (userRepository.existsByEmail(dto.getEmail())) {
 
 			throw new DuplicateResourceException("Email already exists");
 		}
@@ -52,6 +60,9 @@ public class AuthServiceImpl implements AuthService {
 		user.setActive(true);
 
 		User savedUser = userRepository.save(user);
+		// send welcome email
+		emailService.sendEmail(savedUser.getEmail(), "Welcome to Insurance Portal",
+				emailTemplateService.welcomeTemplate(savedUser.getFullName(), savedUser.getEmail()));
 
 		log.info("User registered successfully");
 
@@ -63,12 +74,17 @@ public class AuthServiceImpl implements AuthService {
 
 		authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword()));
 
-		User user = userRepository.findByMail(dto.getEmail())
+		User user = userRepository.findByEmail(dto.getEmail())
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-		String token = jwtService.generateToken(user.getMail());
+		String token = jwtService.generateToken(user.getEmail());
+		// send login alert email
+		String loginTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"));
 
-		return LoginResponseDto.builder().token(token).email(user.getMail()).fullName(user.getFullName())
+		emailService.sendEmail(user.getEmail(), "New Login Detected",
+				emailTemplateService.loginAlertTemplate(user.getFullName(), user.getEmail(), loginTime));
+
+		return LoginResponseDto.builder().token(token).email(user.getEmail()).fullName(user.getFullName())
 				.role(user.getRole()).build();
 	}
 }
