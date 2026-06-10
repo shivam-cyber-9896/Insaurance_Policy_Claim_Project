@@ -5,6 +5,7 @@ import java.util.List;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.monocept.app.dto.ClaimHistoryResponseDto;
 import com.monocept.app.model.Claim;
@@ -28,6 +29,7 @@ public class ClaimHistoryServiceImpl implements ClaimHistoryService {
 	private final UserRepository userRepository;
 	private final ModelMapper modelMapper;
 
+	@Transactional(readOnly = true)
 	@Override
 	public List<ClaimHistoryResponseDto> getHistoryByClaim(Long claimId) {
 
@@ -42,7 +44,8 @@ public class ClaimHistoryServiceImpl implements ClaimHistoryService {
 
 		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
 			if (!claim.getPolicy().getCustomer().getUser().getEmail().equals(email)) {
-				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to view the history of this claim");
+				throw new com.monocept.app.exception.InvalidOperationException(
+						"You are not authorized to view the history of this claim");
 			}
 		}
 

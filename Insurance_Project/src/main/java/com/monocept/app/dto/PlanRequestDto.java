@@ -39,7 +39,7 @@ public class PlanRequestDto {
 
     @NotNull(message = "Duration is required")
     @Min(value = 1, message = "Duration cannot be less than 1 year")
-    private Integer duration;
+    private Integer durationYears;
 
     @NotBlank(message = "Terms and conditions are required")
     private String termsAndConditions;

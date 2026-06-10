@@ -69,7 +69,7 @@ public class InsuranceProduct {
         mappedBy = "insuranceProduct",
         cascade = CascadeType.ALL,
         orphanRemoval = true,
-        fetch = FetchType.LAZY
+        fetch = FetchType.EAGER
     )
     @JsonIgnore
     @Builder.Default

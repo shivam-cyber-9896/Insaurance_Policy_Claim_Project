@@ -10,4 +10,5 @@ import com.monocept.app.model.ClaimDocument;
 public interface ClaimDocumentRepository extends JpaRepository<ClaimDocument, Long> {
 
 	List<ClaimDocument> findByClaim(Claim claim);
+	 List<ClaimDocument> findByClaimId(Long claimId);
 }

@@ -60,7 +60,7 @@ public class PolicyServiceImpl implements PolicyService {
 		policy.setCustomer(customer);
 		policy.setPolicyPlan(plan);
 
-		policy.setPolicyNumber(UUID.randomUUID().toString().substring(0, 10));
+		policy.setPolicyNumber("POL-" + java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")) + "-" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase());
 
 		policy.setStartDate(dto.getStartDate());
 
@@ -90,7 +90,7 @@ public class PolicyServiceImpl implements PolicyService {
 		Policy policy = new Policy();
 		policy.setCustomer(customer);
 		policy.setPolicyPlan(plan);
-		policy.setPolicyNumber(UUID.randomUUID().toString().substring(0, 10));
+		policy.setPolicyNumber("POL-" + java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")) + "-" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase());
 		policy.setStartDate(dto.getStartDate());
 		policy.setEndDate(dto.getStartDate().plusYears(plan.getDurationYears()));
 		policy.setPolicyStatus(PolicyStatus.PENDING_PAYMENT);

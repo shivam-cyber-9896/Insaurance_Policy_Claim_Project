@@ -79,7 +79,7 @@ public class Policy {
     private LocalDateTime updatedAt;
 
     @NotNull(message = "Customer is required")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(
         name = "customer_id",
         nullable = false,
@@ -89,7 +89,7 @@ public class Policy {
     private Customer customer;
 
     @NotNull(message = "Policy plan is required")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(
         name = "plan_id",
         nullable = false,
@@ -102,7 +102,7 @@ public class Policy {
         mappedBy = "policy",
         cascade = CascadeType.ALL,
         orphanRemoval = true,
-        fetch = FetchType.LAZY
+        fetch = FetchType.EAGER
     )
     @JsonIgnore
     @Builder.Default
@@ -112,7 +112,7 @@ public class Policy {
         mappedBy = "policy",
         cascade = CascadeType.ALL,
         orphanRemoval = true,
-        fetch = FetchType.LAZY
+        fetch = FetchType.EAGER
     )
     @JsonIgnore
     @Builder.Default
