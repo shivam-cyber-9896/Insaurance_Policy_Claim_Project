@@ -30,9 +30,6 @@ public class PaymentRequestDto {
     @NotNull(message = "Payment mode is required")
     private PaymentMode paymentMode;
 
-    @NotBlank(message = "Transaction reference is required")
-    private String transactionReference;
-
     @NotNull(message = "Payment status is required")
     private PaymentStatus paymentStatus;
 }

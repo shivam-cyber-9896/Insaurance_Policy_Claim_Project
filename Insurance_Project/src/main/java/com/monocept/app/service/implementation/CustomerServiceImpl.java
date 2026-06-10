@@ -19,6 +19,8 @@ import com.monocept.app.model.User;
 import com.monocept.app.repository.CustomerRepository;
 import com.monocept.app.repository.UserRepository;
 import com.monocept.app.service.CustomerService;
+import com.monocept.app.service.EmailService;
+import com.monocept.app.service.EmailTempleteService;
 
 
 
@@ -30,7 +32,9 @@ public class CustomerServiceImpl implements CustomerService {
 	private final CustomerRepository customerRepository;
 	private final UserRepository userRepository;
 	private final ModelMapper modelMapper;
-
+	// add to injections
+	private final EmailService emailService;
+	private final EmailTempleteService emailTemplateService;
 	@Override
 	public CustomerResponseDto createProfile(
 	        CustomerRequestDto dto) {
@@ -64,7 +68,11 @@ public class CustomerServiceImpl implements CustomerService {
 
 	    Customer savedCustomer =
 	            customerRepository.save(customer);
-
+	    emailService.sendEmail(
+	    	    savedCustomer.getUser().getEmail(),
+	    	    "Customer Profile Created",
+	    	    emailTemplateService.customerProfileCreatedTemplate(savedCustomer.getUser().getFullName())
+	    	);
 	    log.info("Customer profile created successfully");
 
 	    return convertToDto(savedCustomer);
@@ -102,6 +110,11 @@ public class CustomerServiceImpl implements CustomerService {
 		customer.setNomineeRelation(dto.getNomineeRelation());
 
 		Customer updatedCustomer = customerRepository.save(customer);
+		emailService.sendEmail(
+			    updatedCustomer.getUser().getEmail(),
+			    "Customer Profile Updated",
+			    emailTemplateService.customerProfileUpdatedTemplate(updatedCustomer.getUser().getFullName())
+			);
 
 		return convertToDto(updatedCustomer);
 	}

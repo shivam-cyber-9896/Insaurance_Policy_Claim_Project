@@ -3,6 +3,7 @@ package com.monocept.app.service.implementation;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -25,8 +26,11 @@ import com.monocept.app.repository.PolicyRepository;
 import com.monocept.app.repository.PremiumPaymentRepository;
 import com.monocept.app.repository.UserRepository;
 import com.monocept.app.repository.CustomerRepository;
+import com.monocept.app.service.EmailService;
+import com.monocept.app.service.EmailTempleteService;
 import com.monocept.app.service.PaymentService;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,16 +44,21 @@ public class PaymentServiceImpl implements PaymentService {
 	private final UserRepository userRepository;
 	private final CustomerRepository customerRepository;
 	private final ModelMapper modelMapper;
-
+	// add to injections
+	private final EmailService emailService;
+	private final EmailTempleteService emailTemplateService;
 	@Override
+	@Transactional
 	public PaymentResponseDto recordPayment(PaymentRequestDto dto) {
 
 		log.info("Recording payment");
 
-		// Check duplicate transaction reference
-		if (paymentRepository.existsByTransactionReference(dto.getTransactionReference())) {
-			throw new DuplicateResourceException("Transaction reference already exists");
-		}
+		/*
+		 * // Check duplicate transaction reference if
+		 * (paymentRepository.existsByTransactionReference(dto.getTransactionReference()
+		 * )) { throw new
+		 * DuplicateResourceException("Transaction reference already exists"); }
+		 */
 
 		// Find policy
 		Policy policy = policyRepository.findById(dto.getPolicyId())
@@ -87,22 +96,46 @@ public class PaymentServiceImpl implements PaymentService {
 		PremiumPayment payment = modelMapper.map(dto, PremiumPayment.class);
 
 		payment.setPolicy(policy);
-
-		// Save Payment
+		payment.setTransactionReference("TXN-"
+			    + java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"))
+			    + "-" + UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase());		// Save Payment
 		PremiumPayment savedPayment = paymentRepository.save(payment);
 
 		// Update Policy
 		if (savedPayment.getPaymentStatus() == PaymentStatus.SUCCESS) {
 
-			policy.setTotalPremiumPaid(policy.getTotalPremiumPaid().add(savedPayment.getAmount()));
+		    policy.setTotalPremiumPaid(policy.getTotalPremiumPaid().add(savedPayment.getAmount()));
 
-			if (policy.getTotalPremiumPaid().compareTo(expectedPremium) >= 0) {
+		    if (policy.getTotalPremiumPaid().compareTo(expectedPremium) >= 0) {
+		        policy.setPolicyStatus(PolicyStatus.ACTIVE);
+		    }
 
-				policy.setPolicyStatus(PolicyStatus.ACTIVE);
-			}
+		    policyRepository.save(policy);
 
-			policyRepository.save(policy);
-		}
+		    // send payment success email
+		    emailService.sendEmail(
+		        policy.getCustomer().getUser().getEmail(),
+		        "Payment Successful - " + policy.getPolicyNumber(),
+		        emailTemplateService.paymentSuccessTemplate(
+		            policy.getCustomer().getUser().getFullName(),
+		            policy.getPolicyNumber(),
+		            savedPayment.getAmount().toString(),
+		            savedPayment.getTransactionReference(),
+		            savedPayment.getPaymentDate().toString()
+		        )
+		    );}
+		    if (savedPayment.getPaymentStatus() == PaymentStatus.FAILED) {
+		        emailService.sendEmail(
+		            policy.getCustomer().getUser().getEmail(),
+		            "Payment Failed - " + policy.getPolicyNumber(),
+		            emailTemplateService.paymentFailedTemplate(
+		                policy.getCustomer().getUser().getFullName(),
+		                policy.getPolicyNumber(),
+		                savedPayment.getAmount().toString()
+		            )
+		        );
+		    }
+		
 
 		return convertToDto(savedPayment);
 	}
