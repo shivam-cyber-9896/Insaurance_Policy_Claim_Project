@@ -12,6 +12,7 @@ import com.monocept.app.exception.CustomExceptions.DuplicateResourceException;
 import com.monocept.app.exception.ResourceNotFoundException;
 import com.monocept.app.model.User;
 import com.monocept.app.repository.UserRepository;
+import com.monocept.app.service.EmailService;
 import com.monocept.app.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,9 @@ public class UserServiceImpl implements UserService {
 	private final UserRepository userRepository;
 	private final ModelMapper modelMapper;
 	private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+	// add to injections
+	private final EmailService emailService;
+	private final EmailTemplateServiceImpl emailTemplateService;
 
 	@Override
 	public Page<UserResponseDto> getAllUsers(Pageable pageable) {
@@ -54,7 +58,8 @@ public class UserServiceImpl implements UserService {
 		user.setActive(true);
 
 		User updatedUser = userRepository.save(user);
-
+		emailService.sendEmail(updatedUser.getEmail(), "Account Activated",
+				emailTemplateService.accountStatusTemplate(updatedUser.getFullName(), "activated"));
 		log.info("User activated successfully");
 
 		return convertToDto(updatedUser);
@@ -75,7 +80,6 @@ public class UserServiceImpl implements UserService {
 
 		return convertToDto(updatedUser);
 	}
-
 
 	private User findUserById(Long id) {
 
@@ -103,7 +107,12 @@ public class UserServiceImpl implements UserService {
 		user.setActive(true);
 
 		User savedUser = userRepository.save(user);
-
+		emailService.sendEmail(savedUser.getEmail(), "Agent Account Created", emailTemplateService
+				.agentRegisteredTemplate(savedUser.getFullName(), savedUser.getEmail(), dto.getPassword() // raw
+																											// password
+																											// before
+																											// encoding
+				));
 		log.info("Agent created successfully");
 
 		return convertToDto(savedUser);

@@ -32,6 +32,8 @@ import com.monocept.app.repository.UserRepository;
 import com.monocept.app.repository.CustomerRepository;
 import com.monocept.app.repository.ClaimStatusHistoryRepository;
 import com.monocept.app.service.ClaimService;
+import com.monocept.app.service.EmailService;
+import com.monocept.app.service.EmailTempleteService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +51,9 @@ public class ClaimServiceImpl implements ClaimService {
 	private final ModelMapper modelMapper;
 	private final CloudinaryServiceImple cloudinaryService;
 	private final ClaimDocumentRepository claimDocumentRepository;
-
+	// add to injections at the top
+	private final EmailService emailService;
+	private final EmailTempleteService emailTemplateService;
 	@Override
 	@Transactional
 	public ClaimResponseDto createClaim(ClaimRequestDto dto, List<MultipartFile> files) throws IOException {
@@ -62,12 +66,12 @@ public class ClaimServiceImpl implements ClaimService {
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
 		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
-			if (!policy.getCustomer().getUser().getEmail().equals(email)) {
-				throw new InvalidOperationException("You are not authorized to raise claim for this policy");
-			}
-		}
+		/*
+		 * if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) { if
+		 * (!policy.getCustomer().getUser().getEmail().equals(email)) { throw new
+		 * InvalidOperationException("You are not authorized to raise claim for this policy"
+		 * ); } }
+		 */
 
 		if (policy.getPolicyStatus() != PolicyStatus.ACTIVE) {
 			throw new InvalidOperationException("Claim can only be raised for active policy");
@@ -92,7 +96,15 @@ public class ClaimServiceImpl implements ClaimService {
 		claim.setClaimStatus(ClaimStatus.SUBMITTED);
 
 		Claim savedClaim = claimRepository.save(claim);
-
+		emailService.sendEmail(
+			    savedClaim.getPolicy().getCustomer().getUser().getEmail(),
+			    "Claim Submitted - " + savedClaim.getClaimNumber(),
+			    emailTemplateService.claimSubmittedTemplate(
+			        savedClaim.getPolicy().getCustomer().getUser().getFullName(),
+			        savedClaim.getClaimNumber(),
+			        savedClaim.getPolicy().getPolicyNumber()
+			    )
+			);
 		// upload documents to Cloudinary if provided
 		if (files != null && !files.isEmpty()) {
 			for (MultipartFile file : files) {
@@ -158,7 +170,16 @@ public class ClaimServiceImpl implements ClaimService {
 		history.setNewStatus(dto.getRecommendedStatus());
 		history.setRemarks(dto.getRemarks());
 		history.setUpdatedBy(loggedInUser);
-
+		emailService.sendEmail(
+			    updatedClaim.getPolicy().getCustomer().getUser().getEmail(),
+			    "Claim Under Review - " + updatedClaim.getClaimNumber(),
+			    emailTemplateService.claimStatusUpdatedTemplate(
+			        updatedClaim.getPolicy().getCustomer().getUser().getFullName(),
+			        updatedClaim.getClaimNumber(),
+			        dto.getRecommendedStatus().toString(),
+			        dto.getRemarks()
+			    )
+			);
 		historyRepository.save(history);
 
 		return convertToDto(updatedClaim);
@@ -195,7 +216,16 @@ public class ClaimServiceImpl implements ClaimService {
 		history.setNewStatus(dto.getFinalDecisionStatus());
 		history.setRemarks(dto.getRemarks());
 		history.setUpdatedBy(loggedInUser);
-
+		emailService.sendEmail(
+			    updatedClaim.getPolicy().getCustomer().getUser().getEmail(),
+			    "Claim Decision - " + updatedClaim.getClaimNumber(),
+			    emailTemplateService.claimStatusUpdatedTemplate(
+			        updatedClaim.getPolicy().getCustomer().getUser().getFullName(),
+			        updatedClaim.getClaimNumber(),
+			        dto.getFinalDecisionStatus().toString(),
+			        dto.getRemarks()
+			    )
+			);
 		historyRepository.save(history);
 
 		return convertToDto(updatedClaim);

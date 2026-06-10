@@ -17,6 +17,8 @@ import com.monocept.app.dto.PolicyIssueRequestDto;
 import com.monocept.app.model.Policy;
 import com.monocept.app.model.PolicyPlan;
 import com.monocept.app.enums.PolicyStatus;
+import com.monocept.app.service.EmailService;
+import com.monocept.app.service.EmailTempleteService;
 import com.monocept.app.service.PolicyService;
 import com.monocept.app.dto.PolicyPurchaseRequestDto;
 import com.monocept.app.dto.PolicyResponseDto;
@@ -39,6 +41,9 @@ public class PolicyServiceImpl implements PolicyService {
 	private final UserRepository userRepository;
 	private final ModelMapper modelMapper;
 
+	private final EmailService emailService;
+	private final EmailTempleteService emailTemplateService;
+
 	@Override
 	public PolicyResponseDto purchasePolicy(PolicyPurchaseRequestDto dto) {
 
@@ -60,7 +65,9 @@ public class PolicyServiceImpl implements PolicyService {
 		policy.setCustomer(customer);
 		policy.setPolicyPlan(plan);
 
-		policy.setPolicyNumber("POL-" + java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")) + "-" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase());
+		policy.setPolicyNumber(
+				"POL-" + java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"))
+						+ "-" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase());
 
 		policy.setStartDate(dto.getStartDate());
 
@@ -72,6 +79,10 @@ public class PolicyServiceImpl implements PolicyService {
 
 		Policy savedPolicy = policyRepository.save(policy);
 
+		emailService.sendEmail(customer.getUser().getEmail(), "Policy Created - " + savedPolicy.getPolicyNumber(),
+				emailTemplateService.policyCreatedTemplate(customer.getUser().getFullName(),
+						savedPolicy.getPolicyNumber(), plan.getPlanName(), savedPolicy.getStartDate().toString(),
+						savedPolicy.getEndDate().toString(), plan.getPremiumAmount().toString()));
 		log.info("Policy created successfully");
 
 		return convertToDto(savedPolicy);
@@ -90,7 +101,9 @@ public class PolicyServiceImpl implements PolicyService {
 		Policy policy = new Policy();
 		policy.setCustomer(customer);
 		policy.setPolicyPlan(plan);
-		policy.setPolicyNumber("POL-" + java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")) + "-" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase());
+		policy.setPolicyNumber(
+				"POL-" + java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"))
+						+ "-" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase());
 		policy.setStartDate(dto.getStartDate());
 		policy.setEndDate(dto.getStartDate().plusYears(plan.getDurationYears()));
 		policy.setPolicyStatus(PolicyStatus.PENDING_PAYMENT);
@@ -98,6 +111,10 @@ public class PolicyServiceImpl implements PolicyService {
 
 		Policy savedPolicy = policyRepository.save(policy);
 
+		emailService.sendEmail(customer.getUser().getEmail(), "Policy Issued - " + savedPolicy.getPolicyNumber(),
+				emailTemplateService.policyCreatedTemplate(customer.getUser().getFullName(),
+						savedPolicy.getPolicyNumber(), plan.getPlanName(), savedPolicy.getStartDate().toString(),
+						savedPolicy.getEndDate().toString(), plan.getPremiumAmount().toString()));
 		log.info("Policy issued successfully");
 
 		return convertToDto(savedPolicy);
@@ -114,7 +131,8 @@ public class PolicyServiceImpl implements PolicyService {
 
 		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
 			if (!policy.getCustomer().getUser().getEmail().equals(email)) {
-				throw new com.monocept.app.exception.InvalidOperationException("You are not authorized to view this policy");
+				throw new com.monocept.app.exception.InvalidOperationException(
+						"You are not authorized to view this policy");
 			}
 		}
 
@@ -141,8 +159,6 @@ public class PolicyServiceImpl implements PolicyService {
 		return policyRepository.findByCustomer(customer, pageable).map(this::convertToDto);
 	}
 
-	
-
 	private Policy findPolicyById(Long id) {
 
 		return policyRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
@@ -165,5 +181,4 @@ public class PolicyServiceImpl implements PolicyService {
 		return policyRepository.findAll(pageable).map(this::convertToDto);
 	}
 
-	
 }
