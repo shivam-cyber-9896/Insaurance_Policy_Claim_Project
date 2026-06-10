@@ -21,7 +21,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"fullName\": \"Bob Vance\",\n    \"email\": \"bob.vance@insurance.com\",\n    \"password\": \"Customer@12345\",\n    \"mobileNumber\": \"9812345670\",\n    \"role\": \"CUSTOMER\"\n}"
+							"raw": "{\n    \"fullName\": \"Bob Vance\",\n    \"email\": \"bob.vance@insurance.com\",\n    \"password\": \"Customer@12345\",\n    \"phoneNumber\": \"9812345670\",\n    \"role\": \"CUSTOMER\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/auth/register",
@@ -82,7 +82,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"fullName\": \"Agent Smith\",\n    \"email\": \"agent.smith@insurance.com\",\n    \"password\": \"Agent@12345\",\n    \"mobileNumber\": \"9876543210\",\n    \"role\": \"AGENT\"\n}"
+							"raw": "{\n    \"fullName\": \"Agent Smith\",\n    \"email\": \"agent.smith@insurance.com\",\n    \"password\": \"Agent@12345\",\n    \"phoneNumber\": \"9876543210\",\n    \"role\": \"AGENT\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/users/agent",
