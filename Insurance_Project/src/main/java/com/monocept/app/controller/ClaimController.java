@@ -44,6 +44,12 @@ public class ClaimController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(claimService.createClaim(dto, files));
 	}
 
+	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ClaimResponseDto> createClaimJson(@Valid @RequestBody ClaimRequestDto dto) throws IOException {
+
+		return ResponseEntity.status(HttpStatus.CREATED).body(claimService.createClaim(dto, null));
+	}
+
 	@GetMapping("/{id}")
 	public ResponseEntity<ClaimResponseDto> getClaimById(@PathVariable Long id) {
 

@@ -16,6 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ClaimResponseDto {
+	private Long id;
 	private String claimNumber;
     private String policyNumber;
     private String customerName;

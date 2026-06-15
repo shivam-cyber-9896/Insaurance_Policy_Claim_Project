@@ -34,8 +34,5 @@ public class ClaimRequestDto {
     @PastOrPresent(message = "Incident date cannot be a future date")
     private LocalDate incidentDate;
 
-	/*
-	 * @NotEmpty(message = "At least one supporting document reference is required")
-	 * private List<ClaimDocumentRequestDto> documents;
-	 */
+    private List<ClaimDocumentRequestDto> documents;
 }

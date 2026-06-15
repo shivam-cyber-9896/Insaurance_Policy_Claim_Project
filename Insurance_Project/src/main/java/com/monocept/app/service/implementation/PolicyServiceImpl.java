@@ -168,6 +168,8 @@ public class PolicyServiceImpl implements PolicyService {
 
 		PolicyResponseDto dto = modelMapper.map(policy, PolicyResponseDto.class);
 
+		dto.setId(policy.getId());
+
 		dto.setCustomerName(policy.getCustomer().getUser().getFullName());
 
 		dto.setPlanName(policy.getPolicyPlan().getPlanName());

@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.monocept.app.dto.PlanRequestDto;
 import com.monocept.app.dto.PlanResponseDto;
@@ -25,6 +26,7 @@ import com.monocept.app.service.PolicyPlanService;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class PolicyPlanServiceImpl implements PolicyPlanService {
 
 	private final PolicyPlanRepository planRepository;
@@ -32,6 +34,7 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 	private final ModelMapper modelMapper;
 
 	@Override
+	@Transactional
 	public PlanResponseDto createPlan(PlanRequestDto dto) {
 
 		log.info("Creating policy plan");
@@ -51,6 +54,7 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 	}
 
 	@Override
+	@Transactional
 	public PlanResponseDto updatePlan(Long id, PlanRequestDto dto) {
 
 		log.info("Updating policy plan: {}", id);
@@ -76,6 +80,7 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 	}
 
 	@Override
+	@Transactional
 	public PlanResponseDto deactivatePlan(Long id) {
 
 		log.info("Deactivating plan: {}", id);
