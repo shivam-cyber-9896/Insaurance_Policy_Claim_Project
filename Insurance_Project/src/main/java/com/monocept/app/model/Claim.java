@@ -86,7 +86,7 @@ public class Claim {
     private LocalDateTime updatedAt;
 
     @NotNull(message = "Policy is required")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(
         name = "policy_id",
         nullable = false,
@@ -94,7 +94,7 @@ public class Claim {
     )
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "claims"})
     private Policy policy;
-
+    
     @OneToMany(
         mappedBy = "claim",
         cascade = CascadeType.ALL,

@@ -50,7 +50,7 @@ public class User {
         regexp = "^[6-9]\\d{9}$",
         message = "Mobile number must be a valid 10-digit Indian number"
     )
-    @Column(name = "phone_number", length = 10)
+    @Column(name = "phone_number", length = 10, unique = true)
     private String phoneNumber;
 
     @NotNull(message = "Role cannot be null")

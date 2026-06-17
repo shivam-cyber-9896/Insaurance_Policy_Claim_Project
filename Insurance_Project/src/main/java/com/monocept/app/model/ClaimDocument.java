@@ -31,7 +31,7 @@ public class ClaimDocument {
     private Long id;
 
     @NotNull(message = "Claim is required")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(
         name = "claim_id",
         nullable = false,

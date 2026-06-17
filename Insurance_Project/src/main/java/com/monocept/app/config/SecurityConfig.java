@@ -1,8 +1,12 @@
 package com.monocept.app.config;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -11,6 +15,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.monocept.app.security.JwtAuthenticationFilter;
 
@@ -31,16 +38,19 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-		return http.csrf(csrf -> csrf.disable())
+		return http.cors(Customizer.withDefaults()).csrf(csrf -> csrf.disable())
 
 				.authorizeHttpRequests(auth -> auth
 
 						.requestMatchers("/api/auth/**").permitAll()
+
 						.requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/api-docs/**")
 						.permitAll()
-						.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products/**", "/api/plans/**")
-						.hasAnyRole("ADMIN", "AGENT", "CUSTOMER").requestMatchers("/api/products/**", "/api/plans/**")
-						.hasRole("ADMIN")
+
+						.requestMatchers(HttpMethod.GET, "/api/products/**", "/api/plans/**")
+						.hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
+
+						.requestMatchers("/api/products/**", "/api/plans/**").hasRole("ADMIN")
 
 						.requestMatchers("/api/users/**").hasRole("ADMIN")
 
@@ -49,28 +59,41 @@ public class SecurityConfig {
 						.requestMatchers("/api/claims/{id}/decision").hasRole("ADMIN")
 
 						// Customers Module
-						.requestMatchers(org.springframework.http.HttpMethod.POST, "/api/customers").hasRole("CUSTOMER")
-						.requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/customers/**").hasRole("CUSTOMER")
+						.requestMatchers(HttpMethod.POST, "/api/customers").hasRole("CUSTOMER")
+
+						.requestMatchers(HttpMethod.PUT, "/api/customers/**").hasRole("CUSTOMER")
+
 						.requestMatchers("/api/customers/profile").hasRole("CUSTOMER")
-						.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/customers").hasAnyRole("ADMIN", "AGENT")
+
+						.requestMatchers(HttpMethod.GET, "/api/customers").hasAnyRole("ADMIN", "AGENT")
+
 						.requestMatchers("/api/customers/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
 
 						// Policies Module
 						.requestMatchers("/api/policies/purchase").hasRole("CUSTOMER")
+
 						.requestMatchers("/api/policies/issue").hasAnyRole("ADMIN", "AGENT")
+
 						.requestMatchers("/api/policies/my").hasRole("CUSTOMER")
-						.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/policies").hasAnyRole("ADMIN", "AGENT")
+
+						.requestMatchers(HttpMethod.GET, "/api/policies").hasAnyRole("ADMIN", "AGENT")
+
 						.requestMatchers("/api/policies/{id}/cancel").hasAnyRole("ADMIN", "AGENT")
+
 						.requestMatchers("/api/policies/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
 
 						// Payments Module
 						.requestMatchers("/api/payments/my").hasRole("CUSTOMER")
-						.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/payments").hasAnyRole("ADMIN", "AGENT")
+
+						.requestMatchers(HttpMethod.GET, "/api/payments").hasAnyRole("ADMIN", "AGENT")
+
 						.requestMatchers("/api/payments/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
 
 						// Claims Module
 						.requestMatchers("/api/claims/my").hasRole("CUSTOMER")
-						.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/claims").hasAnyRole("ADMIN", "AGENT")
+
+						.requestMatchers(HttpMethod.GET, "/api/claims").hasAnyRole("ADMIN", "AGENT")
+
 						.requestMatchers("/api/claims/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
 
 						// Claim History Module
@@ -79,15 +102,32 @@ public class SecurityConfig {
 						.anyRequest().authenticated())
 
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
 				.build();
 	}
 
 	@Bean
+	public CorsConfigurationSource corsConfigurationSource() {
+
+	    CorsConfiguration configuration = new CorsConfiguration();
+
+	    configuration.setAllowedOriginPatterns(List.of("*"));
+	    configuration.setAllowedMethods(List.of("*"));
+	    configuration.setAllowedHeaders(List.of("*"));
+	    configuration.setAllowCredentials(true);
+
+	    UrlBasedCorsConfigurationSource source =
+	            new UrlBasedCorsConfigurationSource();
+
+	    source.registerCorsConfiguration("/**", configuration);
+
+	    return source;
+	}
+	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
 
 		return config.getAuthenticationManager();
 	}
-
 }

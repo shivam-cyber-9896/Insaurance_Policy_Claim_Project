@@ -9,6 +9,8 @@ import com.monocept.app.model.OtpVerification;
 import com.monocept.app.repository.OtpVerificationRepository;
 import com.monocept.app.service.EmailService;
 import com.monocept.app.service.OtpService;
+import com.monocept.app.service.SmsService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,30 +21,28 @@ public class OtpServiceImpl implements OtpService {
 
     private final OtpVerificationRepository otpRepository;
     private final EmailService emailService;
+    private final SmsService smsService;
     private final Random random = new Random();
 
     @Override
     @Transactional
-    public void sendOtp(String email) {
+    public void sendOtp(String email, String phoneNumber) {
+
         log.info("Generating OTP for email: {}", email);
 
-        // Generate 6 digit numeric OTP
         int code = 100000 + random.nextInt(900000);
         String otp = String.valueOf(code);
-
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(5);
 
-        // Save or update OTP verification record
         OtpVerification verification = otpRepository.findByEmail(email)
                 .orElse(new OtpVerification());
-        
+
         verification.setEmail(email);
+        verification.setPhoneNumber(phoneNumber);
         verification.setOtp(otp);
         verification.setExpiresAt(expiresAt);
-
         otpRepository.save(verification);
 
-        // Send OTP via email
         String subject = "Email Verification OTP";
         String htmlBody = "<h3>Email Verification</h3>"
                 + "<p>Thank you for registering. Please use the following One-Time Password (OTP) to complete your registration:</p>"
@@ -50,11 +50,17 @@ public class OtpServiceImpl implements OtpService {
                 + "<p>This OTP is valid for <b>5 minutes</b>. Please do not share this code with anyone.</p>";
 
         emailService.sendEmail(email, subject, htmlBody);
+
+        // send SMS too, if phone number provided
+        if (phoneNumber != null && !phoneNumber.isBlank()) {
+            smsService.sendSms(phoneNumber, "Your OTP for Insurance Portal is " + otp + ". Valid for 5 minutes.");
+        }
     }
 
     @Override
     @Transactional
     public void verifyOtp(String email, String code) {
+
         log.info("Verifying OTP for email: {}", email);
 
         OtpVerification verification = otpRepository.findByEmail(email)
@@ -69,7 +75,6 @@ public class OtpServiceImpl implements OtpService {
             throw new InvalidOperationException("Invalid OTP code. Please try again.");
         }
 
-        // Successfully verified, delete the OTP to prevent replay attacks
         otpRepository.delete(verification);
         log.info("OTP verified successfully for email: {}", email);
     }

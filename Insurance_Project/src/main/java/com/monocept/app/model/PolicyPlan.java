@@ -38,7 +38,7 @@ public class PolicyPlan {
     private Long id;
 
     @NotNull(message = "Insurance product is required")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(
         name = "product_id",
         nullable = false,
