@@ -137,7 +137,7 @@ public class AuthServiceImpl implements AuthService {
 			throw new com.monocept.app.exception.InvalidOperationException("User is inactive. Please verify your OTP first.");
 		}
 
-		String token = jwtService.generateToken(user.getEmail());
+		String token = jwtService.generateToken(user);
 		// send login alert email
 		String loginTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"));
 
