@@ -19,14 +19,15 @@ import com.monocept.app.enums.ProductType;
 @AllArgsConstructor
 public class PolicyResponseDto {
    
+    private Long id;
     private String policyNumber;
     private Long customerId;
     private String customerName;
     private Long planId;
     private String planName;
     private ProductType productType;
-    private Double coverageAmount;
-    private Double premiumAmount;
+    private BigDecimal coverageAmount;
+    private BigDecimal premiumAmount;
     private PremiumType premiumType;
     private LocalDate startDate;
     private LocalDate endDate;

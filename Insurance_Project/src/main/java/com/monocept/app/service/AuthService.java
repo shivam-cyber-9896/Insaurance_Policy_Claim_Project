@@ -13,6 +13,8 @@ public interface AuthService {
 
 	void verifyRegistration(OtpRequestDto dto);
 
+	void verifyMobileRegistration(OtpRequestDto dto);
+
 	void resendOtp(String email);
 }
 

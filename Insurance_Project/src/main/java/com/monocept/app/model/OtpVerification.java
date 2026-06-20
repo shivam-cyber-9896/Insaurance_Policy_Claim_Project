@@ -24,4 +24,18 @@ public class OtpVerification {
 
     @Column(nullable = false)
     private LocalDateTime expiresAt;
+
+    @Column(name = "mobile_otp")
+    private String mobileOtp;
+
+    @Column(name = "mobile_expires_at")
+    private LocalDateTime mobileExpiresAt;
+
+    @Builder.Default
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false;
+
+    @Builder.Default
+    @Column(name = "mobile_verified", nullable = false)
+    private boolean mobileVerified = false;
 }

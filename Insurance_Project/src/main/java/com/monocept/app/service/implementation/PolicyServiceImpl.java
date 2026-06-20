@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,7 @@ import com.monocept.app.repository.UserRepository;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class PolicyServiceImpl implements PolicyService {
 
 	private final PolicyRepository policyRepository;
@@ -45,6 +47,7 @@ public class PolicyServiceImpl implements PolicyService {
 	private final EmailTempleteService emailTemplateService;
 
 	@Override
+	@Transactional
 	public PolicyResponseDto purchasePolicy(PolicyPurchaseRequestDto dto) {
 
 		log.info("Purchasing policy");
@@ -89,6 +92,7 @@ public class PolicyServiceImpl implements PolicyService {
 	}
 
 	@Override
+	@Transactional
 	public PolicyResponseDto issuePolicy(PolicyIssueRequestDto dto) {
 		log.info("Issuing policy to customer: {}", dto.getCustomerId());
 
@@ -140,6 +144,7 @@ public class PolicyServiceImpl implements PolicyService {
 	}
 
 	@Override
+	@Transactional
 	public PolicyResponseDto cancelPolicy(Long id) {
 
 		Policy policy = findPolicyById(id);
@@ -168,9 +173,16 @@ public class PolicyServiceImpl implements PolicyService {
 
 		PolicyResponseDto dto = modelMapper.map(policy, PolicyResponseDto.class);
 
+		dto.setId(policy.getId());
+
 		dto.setCustomerName(policy.getCustomer().getUser().getFullName());
 
 		dto.setPlanName(policy.getPolicyPlan().getPlanName());
+
+		dto.setProductType(policy.getPolicyPlan().getInsuranceProduct().getProductType());
+		dto.setCoverageAmount(policy.getPolicyPlan().getCoverageAmount());
+		dto.setPremiumAmount(policy.getPolicyPlan().getPremiumAmount());
+		dto.setPremiumType(policy.getPolicyPlan().getPremiumType());
 
 		return dto;
 	}

@@ -98,16 +98,47 @@ public class AuthServiceImpl implements AuthService {
 			throw new com.monocept.app.exception.InvalidOperationException("User is already active");
 		}
 
-		otpService.verifyOtp(dto.getEmail(), dto.getOtp());
+		boolean isFullyVerified = otpService.verifyEmailOtp(dto.getEmail(), dto.getOtp());
 
-		user.setActive(true);
-		userRepository.save(user);
+		if (isFullyVerified) {
+			user.setActive(true);
+			userRepository.save(user);
 
-		// Send welcome email
-		emailService.sendEmail(user.getEmail(), "Welcome to Insurance Portal",
-				emailTemplateService.welcomeTemplate(user.getFullName(), user.getEmail()));
+			// Send welcome email
+			emailService.sendEmail(user.getEmail(), "Welcome to Insurance Portal",
+					emailTemplateService.welcomeTemplate(user.getFullName(), user.getEmail()));
 
-		log.info("User account activated successfully");
+			log.info("User account activated successfully");
+		} else {
+			log.info("Email OTP verified successfully. Waiting for mobile OTP verification.");
+		}
+	}
+
+	@Override
+	public void verifyMobileRegistration(OtpRequestDto dto) {
+		log.info("Verifying mobile registration OTP for email: {}", dto.getEmail());
+
+		User user = userRepository.findByEmail(dto.getEmail())
+				.orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + dto.getEmail()));
+
+		if (user.isActive()) {
+			throw new com.monocept.app.exception.InvalidOperationException("User is already active");
+		}
+
+		boolean isFullyVerified = otpService.verifyMobileOtp(dto.getEmail(), dto.getOtp());
+
+		if (isFullyVerified) {
+			user.setActive(true);
+			userRepository.save(user);
+
+			// Send welcome email
+			emailService.sendEmail(user.getEmail(), "Welcome to Insurance Portal",
+					emailTemplateService.welcomeTemplate(user.getFullName(), user.getEmail()));
+
+			log.info("User account activated successfully");
+		} else {
+			log.info("Mobile OTP verified successfully. Waiting for email OTP verification.");
+		}
 	}
 
 	@Override

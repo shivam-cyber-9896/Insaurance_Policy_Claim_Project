@@ -25,7 +25,10 @@ public class ModelMapperConfig {
 				.addMappings(mapper -> mapper.skip(com.monocept.app.model.PremiumPayment::setId));
 
 		modelMapper.typeMap(com.monocept.app.dto.ClaimRequestDto.class, com.monocept.app.model.Claim.class)
-				.addMappings(mapper -> mapper.skip(com.monocept.app.model.Claim::setId));
+				.addMappings(mapper -> {
+					mapper.skip(com.monocept.app.model.Claim::setId);
+					mapper.skip(com.monocept.app.model.Claim::setDocuments);
+				});
 
 		modelMapper.typeMap(com.monocept.app.dto.UserRequestDto.class, com.monocept.app.model.User.class)
 				.addMappings(mapper -> {
@@ -37,8 +40,12 @@ public class ModelMapperConfig {
 		modelMapper
 				.typeMap(com.monocept.app.model.ClaimStatusHistory.class,
 						com.monocept.app.dto.ClaimHistoryResponseDto.class)
-				.addMappings(mapper -> mapper.map(src -> src.getUpdatedBy().getEmail(),
-						com.monocept.app.dto.ClaimHistoryResponseDto::setUpdatedBy));
+				.addMappings(mapper -> {
+					mapper.map(src -> src.getUpdatedBy().getEmail(),
+							com.monocept.app.dto.ClaimHistoryResponseDto::setUpdatedBy);
+					mapper.map(com.monocept.app.model.ClaimStatusHistory::getChangedAt,
+							com.monocept.app.dto.ClaimHistoryResponseDto::setUpdatedDate);
+				});
 		return modelMapper;
 	}
 }

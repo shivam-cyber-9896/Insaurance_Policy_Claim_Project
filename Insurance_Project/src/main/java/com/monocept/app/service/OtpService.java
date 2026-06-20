@@ -2,5 +2,6 @@ package com.monocept.app.service;
 
 public interface OtpService {
     void sendOtp(String email);
-    void verifyOtp(String email, String code);
+    boolean verifyEmailOtp(String email, String code);
+    boolean verifyMobileOtp(String email, String code);
 }

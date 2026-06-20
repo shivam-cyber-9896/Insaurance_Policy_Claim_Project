@@ -37,14 +37,21 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> verifyOtp(
             @Valid @RequestBody OtpRequestDto dto) {
         authService.verifyRegistration(dto);
-        return ResponseEntity.ok(ApiResponse.success("OTP verified successfully. Your account is now active."));
+        return ResponseEntity.ok(ApiResponse.success("Email OTP verified successfully."));
+    }
+
+    @PostMapping("/verify-mobile-otp")
+    public ResponseEntity<ApiResponse<Void>> verifyMobileOtp(
+            @Valid @RequestBody OtpRequestDto dto) {
+        authService.verifyMobileRegistration(dto);
+        return ResponseEntity.ok(ApiResponse.success("Mobile OTP verified successfully."));
     }
 
     @PostMapping("/resend-otp")
     public ResponseEntity<ApiResponse<Void>> resendOtp(
             @RequestParam String email) {
         authService.resendOtp(email);
-        return ResponseEntity.ok(ApiResponse.success("OTP has been resent to your email."));
+        return ResponseEntity.ok(ApiResponse.success("OTPs have been resent to your email and mobile."));
     }
 
     @PostMapping("/login")

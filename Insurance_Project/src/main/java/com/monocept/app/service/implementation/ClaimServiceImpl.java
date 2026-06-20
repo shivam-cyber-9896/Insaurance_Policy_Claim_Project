@@ -123,6 +123,16 @@ public class ClaimServiceImpl implements ClaimService {
 					claimDocumentRepository.save(document);
 				}
 			}
+		} else if (dto.getDocuments() != null && !dto.getDocuments().isEmpty()) {
+			for (ClaimDocumentRequestDto docDto : dto.getDocuments()) {
+				ClaimDocument document = ClaimDocument.builder()
+						.claim(savedClaim)
+						.documentName(docDto.getDocumentName())
+						.documentType(docDto.getDocumentType())
+						.documentReference(docDto.getDocumentReference())
+						.build();
+				claimDocumentRepository.save(document);
+			}
 		}
 
 		// Record in history
@@ -285,6 +295,7 @@ public class ClaimServiceImpl implements ClaimService {
 	        .collect(Collectors.toList());
 
 	    return ClaimResponseDto.builder()
+	        .id(claim.getId())
 	        .claimNumber(claim.getClaimNumber())
 	        .policyNumber(claim.getPolicy().getPolicyNumber())
 	        .customerName(claim.getPolicy().getCustomer().getUser().getFullName())
