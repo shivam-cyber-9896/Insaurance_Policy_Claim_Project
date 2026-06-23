@@ -1,3 +1,4 @@
+
 package com.monocept.app.dto;
 
 import com.monocept.app.enums.Role;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class UserResponseDto {
   
+    private Long id;
     private String fullName;
     private String email;
     private String phoneNumber;
