@@ -98,30 +98,22 @@ public class SecurityConfig {
 
 		return config.getAuthenticationManager();
 	}
-	
-	 @Bean
-	    CorsConfigurationSource corsConfigurationSource() {
-	    	System.out.println("CORS CONFIG LOADED");
+	@Bean
+	public CorsConfigurationSource corsConfigurationSource() {
 
-	        CorsConfiguration configuration = new CorsConfiguration();
+	    CorsConfiguration configuration = new CorsConfiguration();
 
-	        configuration.setAllowedOrigins(
-	                List.of("http://localhost:5173"));
+	    configuration.setAllowedOriginPatterns(List.of("*"));
+	    configuration.setAllowedMethods(List.of("*"));
+	    configuration.setAllowedHeaders(List.of("*"));
+	    configuration.setAllowCredentials(true);
 
-	        configuration.setAllowedMethods(
-	                List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+	    UrlBasedCorsConfigurationSource source =
+	            new UrlBasedCorsConfigurationSource();
 
-	        configuration.setAllowedHeaders(
-	                List.of("*"));
+	    source.registerCorsConfiguration("/**", configuration);
 
-	        configuration.setAllowCredentials(true);
-
-	        UrlBasedCorsConfigurationSource source =
-	                new UrlBasedCorsConfigurationSource();
-
-	        source.registerCorsConfiguration("/**", configuration);
-
-	        return source;
-	    }
+	    return source;
+	}
 
 }

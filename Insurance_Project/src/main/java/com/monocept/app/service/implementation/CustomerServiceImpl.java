@@ -154,13 +154,11 @@ public class CustomerServiceImpl implements CustomerService {
 	}
 
 	private Customer findCustomerById(Long id) {
-		User user = userRepository.findById(id).orElse(null);
-		if (user != null) {
-			java.util.Optional<Customer> custOpt = customerRepository.findByUser(user);
-			if (custOpt.isPresent()) {
-				return custOpt.get();
-			}
-		}
+		/*
+		 * User user = userRepository.findById(id).orElse(null); if (user != null) {
+		 * java.util.Optional<Customer> custOpt = customerRepository.findByUser(user);
+		 * if (custOpt.isPresent()) { return custOpt.get(); } }
+		 */
 		return customerRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + id));
 	}
