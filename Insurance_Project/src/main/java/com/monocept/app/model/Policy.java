@@ -70,6 +70,12 @@ public class Policy {
     @Builder.Default
     private BigDecimal totalPremiumPaid = BigDecimal.ZERO;
 
+    @NotNull(message = "Remaining coverage cannot be null")
+    @DecimalMin(value = "0.00", inclusive = true, message = "Remaining coverage cannot be negative")
+    @Digits(integer = 8, fraction = 2, message = "Remaining coverage must have at most 8 integer digits and 2 decimal places")
+    @Column(name = "remaining_coverage", nullable = false, precision = 10, scale = 2)
+    private BigDecimal remainingCoverage;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt;

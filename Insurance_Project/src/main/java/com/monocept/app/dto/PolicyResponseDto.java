@@ -33,4 +33,5 @@ public class PolicyResponseDto {
     private LocalDate endDate;
     private PolicyStatus policyStatus;
     private BigDecimal totalPremiumPaid;
+    private BigDecimal remainingCoverage;
 }

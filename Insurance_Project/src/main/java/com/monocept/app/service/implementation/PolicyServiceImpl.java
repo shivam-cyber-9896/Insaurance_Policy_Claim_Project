@@ -80,6 +80,8 @@ public class PolicyServiceImpl implements PolicyService {
 
 		policy.setTotalPremiumPaid(BigDecimal.ZERO);
 
+		policy.setRemainingCoverage(plan.getCoverageAmount());
+
 		Policy savedPolicy = policyRepository.save(policy);
 
 		emailService.sendEmail(customer.getUser().getEmail(), "Policy Created - " + savedPolicy.getPolicyNumber(),
@@ -112,6 +114,7 @@ public class PolicyServiceImpl implements PolicyService {
 		policy.setEndDate(dto.getStartDate().plusYears(plan.getDurationYears()));
 		policy.setPolicyStatus(PolicyStatus.PENDING_PAYMENT);
 		policy.setTotalPremiumPaid(BigDecimal.ZERO);
+		policy.setRemainingCoverage(plan.getCoverageAmount());
 
 		Policy savedPolicy = policyRepository.save(policy);
 
@@ -183,6 +186,7 @@ public class PolicyServiceImpl implements PolicyService {
 		dto.setCoverageAmount(policy.getPolicyPlan().getCoverageAmount());
 		dto.setPremiumAmount(policy.getPolicyPlan().getPremiumAmount());
 		dto.setPremiumType(policy.getPolicyPlan().getPremiumType());
+		dto.setRemainingCoverage(policy.getRemainingCoverage());
 
 		return dto;
 	}

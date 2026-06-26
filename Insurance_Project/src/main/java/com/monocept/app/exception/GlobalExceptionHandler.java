@@ -68,6 +68,19 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(com.monocept.app.exception.InvalidOperationException.class)
+    public ResponseEntity<ApiErrorResponseDto> handleInvalidOperation(
+            com.monocept.app.exception.InvalidOperationException ex, WebRequest request) {
+        ApiErrorResponseDto error = ApiErrorResponseDto.builder()
+                .timestamp(LocalDateTime.now())
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .errorType("INVALID_OPERATION")
+                .message(ex.getMessage())
+                .path(request.getDescription(false))
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponseDto> handleValidationFailure(
             MethodArgumentNotValidException ex, WebRequest request) {

@@ -60,7 +60,7 @@ public class ClaimServiceImpl implements ClaimService {
 
 		log.info("Creating claim");
 
-		Policy policy = policyRepository.findById(dto.getPolicyId())
+		Policy policy = policyRepository.findByIdWithLock(dto.getPolicyId())
 				.orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -77,10 +77,12 @@ public class ClaimServiceImpl implements ClaimService {
 			throw new InvalidOperationException("Claim can only be raised for active policy");
 		}
 
-		if (dto.getClaimAmount().compareTo(policy.getPolicyPlan().getCoverageAmount()) > 0) {
-			throw new InvalidOperationException("Claim amount cannot exceed policy coverage amount of "
-					+ policy.getPolicyPlan().getCoverageAmount());
+		if (dto.getClaimAmount().compareTo(policy.getRemainingCoverage()) > 0) {
+			throw new InvalidOperationException("Claim amount exceeds the remaining policy coverage.");
 		}
+
+		policy.setRemainingCoverage(policy.getRemainingCoverage().subtract(dto.getClaimAmount()));
+		policyRepository.save(policy);
 
 		Claim claim = modelMapper.map(dto, Claim.class);
 		claim.setPolicy(policy);
@@ -166,6 +168,13 @@ public class ClaimServiceImpl implements ClaimService {
 
 		claim.setClaimStatus(dto.getRecommendedStatus());
 
+		if (dto.getRecommendedStatus() == ClaimStatus.REJECTED) {
+			Policy policy = policyRepository.findByIdWithLock(claim.getPolicy().getId())
+					.orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
+			policy.setRemainingCoverage(policy.getRemainingCoverage().add(claim.getClaimAmount()));
+			policyRepository.save(policy);
+		}
+
 		Claim updatedClaim = claimRepository.save(claim);
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -215,6 +224,13 @@ public class ClaimServiceImpl implements ClaimService {
 		claim.setAdminRemarks(dto.getRemarks());
 
 		claim.setClaimStatus(dto.getFinalDecisionStatus());
+
+		if (dto.getFinalDecisionStatus() == ClaimStatus.REJECTED) {
+			Policy policy = policyRepository.findByIdWithLock(claim.getPolicy().getId())
+					.orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
+			policy.setRemainingCoverage(policy.getRemainingCoverage().add(claim.getClaimAmount()));
+			policyRepository.save(policy);
+		}
 
 		Claim updatedClaim = claimRepository.save(claim);
 
