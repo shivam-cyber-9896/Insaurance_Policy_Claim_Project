@@ -16,5 +16,9 @@ public interface AuthService {
 	void verifyMobileRegistration(OtpRequestDto dto);
 
 	void resendOtp(String email);
+
+	void forgotPassword(String email);
+
+	void resetPassword(String email, String otp, String newPassword);
 }
 

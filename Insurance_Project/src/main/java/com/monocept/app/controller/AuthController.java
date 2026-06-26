@@ -61,4 +61,20 @@ public class AuthController {
         return ResponseEntity.ok(
                 authService.login(dto));
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(
+            @RequestParam String email) {
+        authService.forgotPassword(email);
+        return ResponseEntity.ok(ApiResponse.success("Verification code sent successfully."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(
+            @RequestParam String email,
+            @RequestParam String otp,
+            @RequestParam String newPassword) {
+        authService.resetPassword(email, otp, newPassword);
+        return ResponseEntity.ok(ApiResponse.success("Password reset successfully."));
+    }
 }

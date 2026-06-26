@@ -4,6 +4,6 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.monocept.app.model.OtpVerification;
 
-public interface OtpVerificationRepository extends JpaRepository<OtpVerification, Long> {
+public interface OtpVerificationRepository extends JpaRepository<OtpVerification, String> {
     Optional<OtpVerification> findByEmail(String email);
 }

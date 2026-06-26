@@ -24,6 +24,7 @@ import com.monocept.app.service.AuthService;
 import com.monocept.app.service.EmailService;
 import com.monocept.app.service.EmailTempleteService;
 import com.monocept.app.service.OtpService;
+import com.monocept.app.repository.OtpVerificationRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,7 @@ public class AuthServiceImpl implements AuthService {
 	private final EmailService emailService;
 	private final EmailTempleteService emailTemplateService;
 	private final OtpService otpService;
+	private final OtpVerificationRepository otpRepository;
 
 	@Override
 	public UserResponseDto register(UserRequestDto dto) {
@@ -176,5 +178,73 @@ public class AuthServiceImpl implements AuthService {
 
 		return LoginResponseDto.builder().token(token).email(user.getEmail()).fullName(user.getFullName())
 				.role(user.getRole()).build();
+	}
+
+	@Override
+	public void forgotPassword(String email) {
+		log.info("Requesting password reset for email: {}", email);
+
+		User user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+
+		if (!user.isActive()) {
+			throw new com.monocept.app.exception.InvalidOperationException("User account is inactive. Cannot reset password.");
+		}
+
+		// Generate 6 digit numeric OTP
+		java.util.Random random = new java.util.Random();
+		String resetOtp = String.valueOf(100000 + random.nextInt(900000));
+		LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(5);
+
+		// Save or update OTP verification record
+		com.monocept.app.model.OtpVerification verification = otpRepository.findByEmail(email)
+				.orElse(new com.monocept.app.model.OtpVerification());
+		
+		verification.setEmail(email);
+		verification.setOtp(resetOtp);
+		verification.setExpiresAt(expiresAt);
+		verification.setMobileOtp(null);
+		verification.setMobileExpiresAt(expiresAt);
+		verification.setEmailVerified(false);
+		verification.setMobileVerified(false);
+
+		otpRepository.save(verification);
+
+		// Send reset OTP email
+		String subject = "Password Recovery OTP";
+		String htmlBody = "<h3>Password Reset Request</h3>"
+				+ "<p>Please use the following One-Time Password (OTP) to reset your account password:</p>"
+				+ "<h2 style='color:#1a73e8; letter-spacing: 2px;'>" + resetOtp + "</h2>"
+				+ "<p>This OTP is valid for <b>5 minutes</b>. Please do not share this code with anyone.</p>";
+
+		emailService.sendEmail(email, subject, htmlBody);
+	}
+
+	@Override
+	@org.springframework.transaction.annotation.Transactional
+	public void resetPassword(String email, String otp, String newPassword) {
+		log.info("Resetting password for email: {}", email);
+
+		User user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+
+		com.monocept.app.model.OtpVerification verification = otpRepository.findByEmail(email)
+				.orElseThrow(() -> new com.monocept.app.exception.InvalidOperationException("No OTP requested or OTP has expired for this email"));
+
+		if (verification.getExpiresAt().isBefore(LocalDateTime.now())) {
+			otpRepository.delete(verification);
+			throw new com.monocept.app.exception.InvalidOperationException("OTP has expired. Please request a new one.");
+		}
+
+		if (!verification.getOtp().equals(otp)) {
+			throw new com.monocept.app.exception.InvalidOperationException("Invalid recovery code. Please try again.");
+		}
+
+		// Success! Update password and delete OTP record
+		user.setPassword(passwordEncoder.encode(newPassword));
+		userRepository.save(user);
+
+		otpRepository.delete(verification);
+		log.info("Password reset successful. Deleted OTP verification record.");
 	}
 }
