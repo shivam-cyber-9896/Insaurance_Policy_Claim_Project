@@ -201,6 +201,10 @@ public class ClaimServiceImpl implements ClaimService {
 
 		Claim claim = findClaimById(claimId);
 
+		if (claim.getClaimStatus() == ClaimStatus.SUBMITTED) {
+			throw new InvalidOperationException("Admin cannot make a final decision on a claim until it has been reviewed by an agent.");
+		}
+
 		if (claim.getClaimStatus() == ClaimStatus.APPROVED || claim.getClaimStatus() == ClaimStatus.REJECTED) {
 
 			throw new InvalidOperationException("Approved or rejected claims cannot be modified.");
