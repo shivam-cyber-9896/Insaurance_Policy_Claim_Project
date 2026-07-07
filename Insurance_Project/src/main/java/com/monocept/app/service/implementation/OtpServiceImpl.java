@@ -11,6 +11,7 @@ import com.monocept.app.repository.UserRepository;
 import com.monocept.app.service.EmailService;
 import com.monocept.app.service.OtpService;
 import com.monocept.app.service.SmsService;
+import com.monocept.app.enums.OtpPurpose;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,6 +48,7 @@ public class OtpServiceImpl implements OtpService {
         verification.setMobileExpiresAt(expiresAt);
         verification.setEmailVerified(false);
         verification.setMobileVerified(false);
+        verification.setPurpose(OtpPurpose.REGISTRATION);
 
         otpRepository.save(verification);
 
@@ -74,7 +76,7 @@ public class OtpServiceImpl implements OtpService {
     public boolean verifyEmailOtp(String email, String code) {
         log.info("Verifying email OTP for email: {}", email);
 
-        OtpVerification verification = otpRepository.findByEmail(email)
+        OtpVerification verification = otpRepository.findByEmailAndPurpose(email, OtpPurpose.REGISTRATION)
                 .orElseThrow(() -> new InvalidOperationException("No OTP requested or OTP has expired for this email"));
 
         if (verification.getExpiresAt().isBefore(LocalDateTime.now())) {
@@ -104,7 +106,7 @@ public class OtpServiceImpl implements OtpService {
     public boolean verifyMobileOtp(String email, String code) {
         log.info("Verifying mobile OTP for email: {}", email);
 
-        OtpVerification verification = otpRepository.findByEmail(email)
+        OtpVerification verification = otpRepository.findByEmailAndPurpose(email, OtpPurpose.REGISTRATION)
                 .orElseThrow(() -> new InvalidOperationException("No OTP requested or OTP has expired for this email"));
 
         if (verification.getMobileExpiresAt().isBefore(LocalDateTime.now())) {

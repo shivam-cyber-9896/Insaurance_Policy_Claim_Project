@@ -15,8 +15,11 @@ import com.monocept.app.dto.LoginResponseDto;
 import com.monocept.app.dto.UserRequestDto;
 import com.monocept.app.dto.UserResponseDto;
 import com.monocept.app.dto.OtpRequestDto;
+import com.monocept.app.enums.OtpPurpose;
 import com.monocept.app.exception.CustomExceptions.DuplicateResourceException;
+import com.monocept.app.exception.InvalidOperationException;
 import com.monocept.app.exception.ResourceNotFoundException;
+import com.monocept.app.model.OtpVerification;
 import com.monocept.app.model.User;
 import com.monocept.app.repository.UserRepository;
 import com.monocept.app.security.JwtService;
@@ -28,6 +31,10 @@ import com.monocept.app.repository.OtpVerificationRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +50,8 @@ public class AuthServiceImpl implements AuthService {
 	private final EmailTempleteService emailTemplateService;
 	private final OtpService otpService;
 	private final OtpVerificationRepository otpRepository;
+
+	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
 	@Override
 	public UserResponseDto register(UserRequestDto dto) {
@@ -81,7 +90,7 @@ public class AuthServiceImpl implements AuthService {
 		user.setActive(false); // Make inactive initially
 
 		User savedUser = userRepository.save(user);
-		
+
 		otpService.sendOtp(savedUser.getEmail());
 
 		log.info("User registered successfully (inactive). OTP sent.");
@@ -106,7 +115,6 @@ public class AuthServiceImpl implements AuthService {
 			user.setActive(true);
 			userRepository.save(user);
 
-			// Send welcome email
 			emailService.sendEmail(user.getEmail(), "Welcome to Insurance Portal",
 					emailTemplateService.welcomeTemplate(user.getFullName(), user.getEmail()));
 
@@ -133,7 +141,6 @@ public class AuthServiceImpl implements AuthService {
 			user.setActive(true);
 			userRepository.save(user);
 
-			// Send welcome email
 			emailService.sendEmail(user.getEmail(), "Welcome to Insurance Portal",
 					emailTemplateService.welcomeTemplate(user.getFullName(), user.getEmail()));
 
@@ -170,11 +177,16 @@ public class AuthServiceImpl implements AuthService {
 		}
 
 		String token = jwtService.generateToken(user.getEmail());
-		// send login alert email
+
 		String loginTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"));
 
-		emailService.sendEmail(user.getEmail(), "New Login Detected",
-				emailTemplateService.loginAlertTemplate(user.getFullName(), user.getEmail(), loginTime));
+		try {
+			emailService.sendEmail(user.getEmail(), "New Login Detected",
+					emailTemplateService.loginAlertTemplate(user.getFullName(), user.getEmail(), loginTime));
+		} catch (Exception e) {
+			// Don't let a flaky mail server block a successful login
+			log.warn("Failed to send login alert email for {}: {}", user.getEmail(), e.getMessage());
+		}
 
 		return LoginResponseDto.builder().token(token).email(user.getEmail()).fullName(user.getFullName())
 				.role(user.getRole()).build();
@@ -188,21 +200,20 @@ public class AuthServiceImpl implements AuthService {
 				.orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
 
 		if (!user.isActive()) {
-			throw new com.monocept.app.exception.InvalidOperationException("User account is inactive. Cannot reset password.");
+			throw new InvalidOperationException("User account is inactive. Cannot reset password.");
 		}
 
-		// Generate 6 digit numeric OTP
-		java.util.Random random = new java.util.Random();
-		String resetOtp = String.valueOf(100000 + random.nextInt(900000));
+		String resetOtp = String.valueOf(100000 + SECURE_RANDOM.nextInt(900000));
 		LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(5);
 
-		// Save or update OTP verification record
-		com.monocept.app.model.OtpVerification verification = otpRepository.findByEmail(email)
-				.orElse(new com.monocept.app.model.OtpVerification());
-		
+		OtpVerification verification = otpRepository
+				.findByEmailAndPurpose(email, OtpPurpose.PASSWORD_RESET)
+				.orElse(new OtpVerification());
+
 		verification.setEmail(email);
 		verification.setOtp(resetOtp);
 		verification.setExpiresAt(expiresAt);
+		verification.setPurpose(OtpPurpose.PASSWORD_RESET);
 		verification.setMobileOtp(null);
 		verification.setMobileExpiresAt(expiresAt);
 		verification.setEmailVerified(false);
@@ -210,7 +221,6 @@ public class AuthServiceImpl implements AuthService {
 
 		otpRepository.save(verification);
 
-		// Send reset OTP email
 		String subject = "Password Recovery OTP";
 		String htmlBody = "<h3>Password Reset Request</h3>"
 				+ "<p>Please use the following One-Time Password (OTP) to reset your account password:</p>"
@@ -228,23 +238,32 @@ public class AuthServiceImpl implements AuthService {
 		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
 
-		com.monocept.app.model.OtpVerification verification = otpRepository.findByEmail(email)
-				.orElseThrow(() -> new com.monocept.app.exception.InvalidOperationException("No OTP requested or OTP has expired for this email"));
+		if (!user.isActive()) {
+			throw new InvalidOperationException("User account is inactive. Cannot reset password.");
+		}
+
+		OtpVerification verification = otpRepository
+				.findByEmailAndPurpose(email, OtpPurpose.PASSWORD_RESET)
+				.orElseThrow(() -> new InvalidOperationException(
+						"No OTP requested or OTP has expired for this email"));
 
 		if (verification.getExpiresAt().isBefore(LocalDateTime.now())) {
 			otpRepository.delete(verification);
-			throw new com.monocept.app.exception.InvalidOperationException("OTP has expired. Please request a new one.");
+			throw new InvalidOperationException("OTP has expired. Please request a new one.");
 		}
 
-		if (!verification.getOtp().equals(otp)) {
-			throw new com.monocept.app.exception.InvalidOperationException("Invalid recovery code. Please try again.");
+		boolean matches = MessageDigest.isEqual(
+				verification.getOtp().getBytes(StandardCharsets.UTF_8),
+				otp.getBytes(StandardCharsets.UTF_8));
+
+		if (!matches) {
+			throw new InvalidOperationException("Invalid recovery code. Please try again.");
 		}
 
-		// Success! Update password and delete OTP record
 		user.setPassword(passwordEncoder.encode(newPassword));
 		userRepository.save(user);
 
 		otpRepository.delete(verification);
 		log.info("Password reset successful. Deleted OTP verification record.");
 	}
-}
+}

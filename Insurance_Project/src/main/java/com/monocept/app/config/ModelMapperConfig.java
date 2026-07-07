@@ -41,8 +41,6 @@ public class ModelMapperConfig {
 				.typeMap(com.monocept.app.model.ClaimStatusHistory.class,
 						com.monocept.app.dto.ClaimHistoryResponseDto.class)
 				.addMappings(mapper -> {
-					mapper.map(src -> src.getUpdatedBy().getEmail(),
-							com.monocept.app.dto.ClaimHistoryResponseDto::setUpdatedBy);
 					mapper.map(com.monocept.app.model.ClaimStatusHistory::getChangedAt,
 							com.monocept.app.dto.ClaimHistoryResponseDto::setUpdatedDate);
 				});

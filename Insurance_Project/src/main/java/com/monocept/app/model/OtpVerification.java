@@ -1,6 +1,9 @@
 package com.monocept.app.model;
 
 import java.time.LocalDateTime;
+
+import com.monocept.app.enums.OtpPurpose;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -35,4 +38,7 @@ public class OtpVerification {
     @Builder.Default
     @Column(name = "mobile_verified", nullable = false)
     private boolean mobileVerified = false;
+    @Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private OtpPurpose purpose;
 }
