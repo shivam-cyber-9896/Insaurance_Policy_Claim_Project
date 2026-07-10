@@ -29,6 +29,10 @@ public class PremiumPayment {
     @Column(name = "payment_id")
     private Long id;
 
+    @Version
+    @Column(name = "version")
+    private Long version;
+
     @NotNull(message = "Payment amount is required")
     @DecimalMin(value = "0.01", inclusive = true, message = "Payment amount must be at least 0.01")
     @Digits(integer = 10, fraction = 2, message = "Amount must have at most 10 integer digits and 2 decimal places")

@@ -39,6 +39,10 @@ public class Policy {
     @Column(name = "policy_id")
     private Long id;
 
+    @Version
+    @Column(name = "version")
+    private Long version;
+
     @NotBlank(message = "Policy number is required")
     @Pattern(
         regexp = "^POL-[0-9]{8}-[A-Z0-9]{6}$",

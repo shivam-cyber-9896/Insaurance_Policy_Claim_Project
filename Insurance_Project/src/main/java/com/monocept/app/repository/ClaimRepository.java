@@ -22,5 +22,7 @@ public interface ClaimRepository extends JpaRepository<Claim, Long> {
     boolean existsByClaimNumber(
             String claimNumber);
 
+    boolean existsByPolicyIdAndClaimAmountAndIncidentDate(Long policyId, java.math.BigDecimal claimAmount, java.time.LocalDate incidentDate);
+
     Page<Claim> findByPolicyCustomer(com.monocept.app.model.Customer customer, Pageable pageable);
 }

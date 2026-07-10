@@ -98,6 +98,36 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
+    public ResponseEntity<ApiErrorResponseDto> handleConstraintViolation(
+            jakarta.validation.ConstraintViolationException ex, WebRequest request) {
+        String validationErrors = ex.getConstraintViolations().stream()
+                .map(jakarta.validation.ConstraintViolation::getMessage)
+                .collect(Collectors.joining(", "));
+
+        ApiErrorResponseDto error = ApiErrorResponseDto.builder()
+                .timestamp(LocalDateTime.now())
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .errorType("VALIDATION_FAILURE")
+                .message(validationErrors)
+                .path(request.getDescription(false))
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(org.springframework.orm.ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ApiErrorResponseDto> handleOptimisticLockingFailure(
+            org.springframework.orm.ObjectOptimisticLockingFailureException ex, WebRequest request) {
+        ApiErrorResponseDto error = ApiErrorResponseDto.builder()
+                .timestamp(LocalDateTime.now())
+                .statusCode(HttpStatus.CONFLICT.value())
+                .errorType("CONCURRENT_MODIFICATION")
+                .message("The resource was updated or processed by another transaction concurrently. Please refresh and try again.")
+                .path(request.getDescription(false))
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponseDto> handleGenericException(
             Exception ex, WebRequest request) {

@@ -38,6 +38,10 @@ public class Claim {
     @Column(name = "claim_id")
     private Long id;
 
+    @Version
+    @Column(name = "version")
+    private Long version;
+
     @NotBlank(message = "Claim number is required")
     @Pattern(
         regexp = "^CLM-[0-9]{8}-[A-Z0-9]{6}$",

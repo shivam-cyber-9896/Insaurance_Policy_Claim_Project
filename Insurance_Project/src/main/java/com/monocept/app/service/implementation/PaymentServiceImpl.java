@@ -110,7 +110,7 @@ public class PaymentServiceImpl implements PaymentService {
 		        policy.setPolicyStatus(PolicyStatus.ACTIVE);
 		    }
 
-		    policyRepository.save(policy);
+		    policyRepository.saveAndFlush(policy);
 
 		    // send payment success email
 		    emailService.sendEmail(

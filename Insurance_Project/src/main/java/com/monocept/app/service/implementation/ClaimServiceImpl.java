@@ -81,8 +81,12 @@ public class ClaimServiceImpl implements ClaimService {
 			throw new InvalidOperationException("Claim amount exceeds the remaining policy coverage.");
 		}
 
+		if (claimRepository.existsByPolicyIdAndClaimAmountAndIncidentDate(policy.getId(), dto.getClaimAmount(), dto.getIncidentDate())) {
+			throw new InvalidOperationException("A claim with the same amount and incident date already exists for this policy.");
+		}
+
 		policy.setRemainingCoverage(policy.getRemainingCoverage().subtract(dto.getClaimAmount()));
-		policyRepository.save(policy);
+		policyRepository.saveAndFlush(policy);
 
 		Claim claim = modelMapper.map(dto, Claim.class);
 		claim.setPolicy(policy);
