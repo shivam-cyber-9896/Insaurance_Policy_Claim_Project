@@ -17,7 +17,10 @@ import lombok.extern.slf4j.Slf4j;
 import com.monocept.app.dto.PolicyIssueRequestDto;
 import com.monocept.app.model.Policy;
 import com.monocept.app.model.PolicyPlan;
+import com.monocept.app.enums.AgentSpecialization;
 import com.monocept.app.enums.PolicyStatus;
+import com.monocept.app.enums.Role;
+import com.monocept.app.exception.InvalidOperationException;
 import com.monocept.app.service.EmailService;
 import com.monocept.app.service.EmailTempleteService;
 import com.monocept.app.service.PolicyService;
@@ -63,23 +66,22 @@ public class PolicyServiceImpl implements PolicyService {
 		PolicyPlan plan = planRepository.findById(dto.getPlanId())
 				.orElseThrow(() -> new ResourceNotFoundException("Plan not found"));
 
-		Policy policy = new Policy();
+		// Validate and assign agent
+		User agent = resolveAgent(dto.getAgentId(), plan.getInsuranceProduct().getProductType());
 
+		Policy policy = new Policy();
 		policy.setCustomer(customer);
 		policy.setPolicyPlan(plan);
+		policy.setAgent(agent);
 
 		policy.setPolicyNumber(
 				"POL-" + java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"))
 						+ "-" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase());
 
 		policy.setStartDate(dto.getStartDate());
-
 		policy.setEndDate(dto.getStartDate().plusYears(plan.getDurationYears()));
-
 		policy.setPolicyStatus(PolicyStatus.PENDING_PAYMENT);
-
 		policy.setTotalPremiumPaid(BigDecimal.ZERO);
-
 		policy.setRemainingCoverage(plan.getCoverageAmount());
 
 		Policy savedPolicy = policyRepository.save(policy);
@@ -88,6 +90,17 @@ public class PolicyServiceImpl implements PolicyService {
 				emailTemplateService.policyCreatedTemplate(customer.getUser().getFullName(),
 						savedPolicy.getPolicyNumber(), plan.getPlanName(), savedPolicy.getStartDate().toString(),
 						savedPolicy.getEndDate().toString(), plan.getPremiumAmount().toString()));
+
+		if (savedPolicy.getAgent() != null) {
+			try {
+				emailService.sendEmail(savedPolicy.getAgent().getEmail(), "New Policy Assigned - " + savedPolicy.getPolicyNumber(),
+						emailTemplateService.agentAssignedTemplate(savedPolicy.getAgent().getFullName(),
+								customer.getUser().getFullName(), savedPolicy.getPolicyNumber()));
+			} catch (Exception e) {
+				log.error("Failed to send email to agent: ", e);
+			}
+		}
+
 		log.info("Policy created successfully");
 
 		return convertToDto(savedPolicy);
@@ -104,9 +117,13 @@ public class PolicyServiceImpl implements PolicyService {
 		PolicyPlan plan = planRepository.findById(dto.getPlanId())
 				.orElseThrow(() -> new ResourceNotFoundException("Plan not found"));
 
+		// Validate and assign agent
+		User agent = resolveAgent(dto.getAgentId(), plan.getInsuranceProduct().getProductType());
+
 		Policy policy = new Policy();
 		policy.setCustomer(customer);
 		policy.setPolicyPlan(plan);
+		policy.setAgent(agent);
 		policy.setPolicyNumber(
 				"POL-" + java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"))
 						+ "-" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase());
@@ -122,9 +139,57 @@ public class PolicyServiceImpl implements PolicyService {
 				emailTemplateService.policyCreatedTemplate(customer.getUser().getFullName(),
 						savedPolicy.getPolicyNumber(), plan.getPlanName(), savedPolicy.getStartDate().toString(),
 						savedPolicy.getEndDate().toString(), plan.getPremiumAmount().toString()));
+
+		if (savedPolicy.getAgent() != null) {
+			try {
+				emailService.sendEmail(savedPolicy.getAgent().getEmail(), "New Policy Assigned - " + savedPolicy.getPolicyNumber(),
+						emailTemplateService.agentAssignedTemplate(savedPolicy.getAgent().getFullName(),
+								customer.getUser().getFullName(), savedPolicy.getPolicyNumber()));
+			} catch (Exception e) {
+				log.error("Failed to send email to agent: ", e);
+			}
+		}
+
 		log.info("Policy issued successfully");
 
 		return convertToDto(savedPolicy);
+	}
+
+	/**
+	 * Validates agent eligibility for the given product type.
+	 * - SUPER_AGENT (specialization=SUPER) can be assigned to any product type.
+	 * - Standard AGENT must have specialization matching the product type.
+	 */
+	private User resolveAgent(Long agentId, com.monocept.app.enums.ProductType productType) {
+		if (agentId == null) {
+			return null;
+		}
+
+		User agent = userRepository.findById(agentId)
+				.orElseThrow(() -> new ResourceNotFoundException("Agent not found with id: " + agentId));
+
+		if (agent.getRole() != Role.AGENT && agent.getRole() != Role.SUPER_AGENT) {
+			throw new InvalidOperationException("Selected user is not an agent");
+		}
+
+		if (!agent.isActive()) {
+			throw new InvalidOperationException("Selected agent is inactive");
+		}
+
+		// SUPER_AGENT can handle all types
+		if (agent.getSpecialization() == AgentSpecialization.SUPER) {
+			return agent;
+		}
+
+		// Standard AGENT — specialization must match the policy product type
+		if (agent.getSpecialization() == null ||
+				!agent.getSpecialization().name().equals(productType.name())) {
+			throw new InvalidOperationException(
+					"Agent specialization [" + agent.getSpecialization() + "] does not match policy type [" + productType + "]. " +
+					"Please select an agent with " + productType + " specialization or a SUPER_AGENT.");
+		}
+
+		return agent;
 	}
 
 	@Override
@@ -187,6 +252,11 @@ public class PolicyServiceImpl implements PolicyService {
 		dto.setPremiumAmount(policy.getPolicyPlan().getPremiumAmount());
 		dto.setPremiumType(policy.getPolicyPlan().getPremiumType());
 		dto.setRemainingCoverage(policy.getRemainingCoverage());
+
+		if (policy.getAgent() != null) {
+			dto.setAgentId(policy.getAgent().getId());
+			dto.setAgentName(policy.getAgent().getFullName());
+		}
 
 		return dto;
 	}

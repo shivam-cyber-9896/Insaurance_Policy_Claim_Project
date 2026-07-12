@@ -1,11 +1,11 @@
 package com.monocept.app.util;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import com.monocept.app.enums.AgentSpecialization;
 import com.monocept.app.enums.Role;
 import com.monocept.app.model.Customer;
 import com.monocept.app.model.User;
@@ -26,11 +26,11 @@ public class DataSeeder implements CommandLineRunner {
     private final CustomerRepository customerRepository;
     private final PasswordEncoder passwordEncoder;
 
-    
     @Override
     public void run(String... args) throws Exception {
         seedAdmin();
         seedAgent();
+        seedSuperAgent();
         seedCustomer();
     }
 
@@ -57,10 +57,27 @@ public class DataSeeder implements CommandLineRunner {
             agent.setEmail(email);
             agent.setPassword(passwordEncoder.encode("Agent@12345"));
             agent.setPhoneNumber("8765432109");
-            agent.setRole(Role.AGENT);
+            agent.setRole(Role.SUPER_AGENT);
+            agent.setSpecialization(AgentSpecialization.SUPER);
             agent.setActive(true);
             userRepository.save(agent);
             System.out.println("Seeded default Agent user: agent@insurance.com");
+        }
+    }
+
+    private void seedSuperAgent() {
+        String email = "superagent@insurance.com";
+        if (!userRepository.findByEmail(email).isPresent()) {
+            User superAgent = new User();
+            superAgent.setFullName("Super Agent");
+            superAgent.setEmail(email);
+            superAgent.setPassword(passwordEncoder.encode("SuperAgent@12345"));
+            superAgent.setPhoneNumber("8765432110");
+            superAgent.setRole(Role.SUPER_AGENT);
+            superAgent.setSpecialization(AgentSpecialization.SUPER);
+            superAgent.setActive(true);
+            userRepository.save(superAgent);
+            System.out.println("Seeded default Super Agent user: superagent@insurance.com");
         }
     }
 
@@ -74,7 +91,7 @@ public class DataSeeder implements CommandLineRunner {
             user.setPhoneNumber("7654321098");
             user.setRole(Role.CUSTOMER);
             user.setActive(true);
-            
+
             User savedUser = userRepository.save(user);
             System.out.println("Seeded default Customer user: customer@insurance.com");
 
@@ -87,7 +104,7 @@ public class DataSeeder implements CommandLineRunner {
             customerProfile.setPinCode("100001");
             customerProfile.setNomineeName("Jane Doe");
             customerProfile.setNomineeRelation("Spouse");
-            
+
             customerRepository.save(customerProfile);
             System.out.println("Seeded default Customer profile for John Doe");
         }

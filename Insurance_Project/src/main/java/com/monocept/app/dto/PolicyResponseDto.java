@@ -34,4 +34,6 @@ public class PolicyResponseDto {
     private PolicyStatus policyStatus;
     private BigDecimal totalPremiumPaid;
     private BigDecimal remainingCoverage;
+    private Long agentId;
+    private String agentName;
 }

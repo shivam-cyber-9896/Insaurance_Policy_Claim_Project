@@ -21,4 +21,8 @@ public class PolicyPurchaseRequestDto {
     @NotNull(message = "Start date is required")
     @FutureOrPresent(message = "Start date must be today or future date")
     private LocalDate startDate;
+
+    /** Agent assigned to this policy. Must match the policy's product type (or be SUPER specialization). */
+    
+    private Long agentId;
 }

@@ -1,6 +1,7 @@
 package com.monocept.app.controller;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,6 +23,7 @@ import com.monocept.app.dto.ClaimFinalDecisionRequestDto;
 import com.monocept.app.dto.ClaimRequestDto;
 import com.monocept.app.dto.ClaimResponseDto;
 import com.monocept.app.dto.ClaimReviewRequestDto;
+import com.monocept.app.enums.ProductType;
 import com.monocept.app.service.ClaimService;
 
 import org.springframework.web.bind.annotation.RequestBody;
@@ -77,7 +80,18 @@ public class ClaimController {
 	@PutMapping("/{id}/decision")
 	public ResponseEntity<ClaimResponseDto> finalDecision(@PathVariable Long id,
 			@RequestBody ClaimFinalDecisionRequestDto dto) {
-
 		return ResponseEntity.ok(claimService.finalDecision(id, dto));
+	}
+
+	/**
+	 * PUT /api/claims/super-rule-approve?productType=HEALTH&amountThreshold=50000
+	 * Admin-only endpoint that bulk-approves all RECOMMENDED claims
+	 * matching the given product type and below the amount threshold.
+	 */
+	@PutMapping("/super-rule-approve")
+	public ResponseEntity<List<ClaimResponseDto>> superRuleApprove(
+			@RequestParam ProductType productType,
+			@RequestParam BigDecimal amountThreshold) {
+		return ResponseEntity.ok(claimService.superRuleApproveClaims(productType, amountThreshold));
 	}
 }

@@ -1,7 +1,8 @@
 package com.monocept.app.enums;
 
 public enum Role {
-	    ADMIN,
-	    AGENT,
-	    CUSTOMER
+    ADMIN,
+    AGENT,
+    SUPER_AGENT,
+    CUSTOMER
 }

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.monocept.app.enums.AgentSpecialization;
 import com.monocept.app.enums.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -57,6 +58,15 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20)
     private Role role;
+
+    /**
+     * Specialization of the agent — which product type this agent handles.
+     * SUPER means the agent can handle all policy types and review any claim.
+     * Null for ADMIN and CUSTOMER roles.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "specialization", length = 20)
+    private AgentSpecialization specialization;
 
     @Column(name = "is_active", nullable = false)
     private boolean active = true;

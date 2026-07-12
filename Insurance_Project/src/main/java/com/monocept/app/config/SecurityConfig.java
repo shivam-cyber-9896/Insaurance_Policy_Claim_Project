@@ -47,12 +47,17 @@ public class SecurityConfig {
 						.requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/api-docs/**")
 						.permitAll()
 						.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products/**", "/api/plans/**")
-						.hasAnyRole("ADMIN", "AGENT", "CUSTOMER").requestMatchers("/api/products/**", "/api/plans/**")
+						.hasAnyRole("ADMIN", "AGENT", "SUPER_AGENT", "CUSTOMER")
+						.requestMatchers("/api/products/**", "/api/plans/**")
 						.hasRole("ADMIN")
 
 						.requestMatchers("/api/users/**").hasRole("ADMIN")
 
-						.requestMatchers("/api/claims/{id}/review").hasRole("AGENT")
+						// Claims — review restricted to AGENT or SUPER_AGENT
+						.requestMatchers("/api/claims/{id}/review").hasAnyRole("AGENT", "SUPER_AGENT")
+
+						// Super Rule — ADMIN only
+						.requestMatchers("/api/claims/super-rule-approve").hasRole("ADMIN")
 
 						.requestMatchers("/api/claims/{id}/decision").hasRole("ADMIN")
 
@@ -60,30 +65,30 @@ public class SecurityConfig {
 						.requestMatchers(org.springframework.http.HttpMethod.POST, "/api/customers").hasRole("CUSTOMER")
 						.requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/customers/**").hasRole("CUSTOMER")
 						.requestMatchers("/api/customers/profile").hasRole("CUSTOMER")
-						.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/customers").hasAnyRole("ADMIN", "AGENT")
-						.requestMatchers("/api/customers/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
+						.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/customers").hasAnyRole("ADMIN", "AGENT", "SUPER_AGENT")
+						.requestMatchers("/api/customers/**").hasAnyRole("ADMIN", "AGENT", "SUPER_AGENT", "CUSTOMER")
 
 						// Policies Module
 						.requestMatchers("/api/policies/purchase").hasRole("CUSTOMER")
-						.requestMatchers("/api/policies/issue").hasAnyRole("ADMIN", "AGENT")
+						.requestMatchers("/api/policies/issue").hasAnyRole("ADMIN", "AGENT", "SUPER_AGENT")
 						.requestMatchers("/api/policies/my").hasRole("CUSTOMER")
-						.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/policies").hasAnyRole("ADMIN", "AGENT")
-						.requestMatchers("/api/policies/{id}/cancel").hasAnyRole("ADMIN", "AGENT")
-						.requestMatchers("/api/policies/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
+						.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/policies").hasAnyRole("ADMIN", "AGENT", "SUPER_AGENT")
+						.requestMatchers("/api/policies/{id}/cancel").hasAnyRole("ADMIN", "AGENT", "SUPER_AGENT")
+						.requestMatchers("/api/policies/**").hasAnyRole("ADMIN", "AGENT", "SUPER_AGENT", "CUSTOMER")
 
 						// Payments Module
 						.requestMatchers("/api/payments/my").hasRole("CUSTOMER")
-						.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/payments").hasAnyRole("ADMIN", "AGENT")
-						.requestMatchers("/api/payments/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
+						.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/payments").hasAnyRole("ADMIN", "AGENT", "SUPER_AGENT")
+						.requestMatchers("/api/payments/**").hasAnyRole("ADMIN", "AGENT", "SUPER_AGENT", "CUSTOMER")
 
 						// Claims Module
 						.requestMatchers(org.springframework.http.HttpMethod.POST, "/api/claims").hasRole("CUSTOMER")
 						.requestMatchers("/api/claims/my").hasRole("CUSTOMER")
-						.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/claims").hasAnyRole("ADMIN", "AGENT")
-						.requestMatchers("/api/claims/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
+						.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/claims").hasAnyRole("ADMIN", "AGENT", "SUPER_AGENT")
+						.requestMatchers("/api/claims/**").hasAnyRole("ADMIN", "AGENT", "SUPER_AGENT", "CUSTOMER")
 
 						// Claim History Module
-						.requestMatchers("/api/claim-history/**").hasAnyRole("ADMIN", "AGENT", "CUSTOMER")
+						.requestMatchers("/api/claim-history/**").hasAnyRole("ADMIN", "AGENT", "SUPER_AGENT", "CUSTOMER")
 
 						.anyRequest().authenticated())
 

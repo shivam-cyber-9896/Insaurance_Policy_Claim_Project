@@ -77,6 +77,17 @@ public class Claim {
     @Column(name = "agent_remarks", length = 2000)
     private String agentRemarks;
 
+    /**
+     * Amount the agent recommends to approve/pass for this claim.
+     * Can be less than or equal to the original claimAmount.
+     * Set during claim review by the assigned agent.
+     */
+    @DecimalMin(value = "0.01", inclusive = true, message = "Agent suggested amount must be at least 0.01")
+    @DecimalMax(value = "99999999.99", message = "Agent suggested amount exceeds maximum allowed limit")
+    @Digits(integer = 8, fraction = 2, message = "Agent suggested amount must have at most 8 integer digits and 2 decimal places")
+    @Column(name = "agent_suggested_amount", precision = 10, scale = 2)
+    private BigDecimal agentSuggestedAmount;
+
     @Size(max = 2000, message = "Admin remarks must not exceed 2000 characters")
     @Column(name = "admin_remarks", length = 2000)
     private String adminRemarks;

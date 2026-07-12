@@ -7,10 +7,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.monocept.app.dto.UserResponseDto;
 import com.monocept.app.dto.UserStatusRequestDto;
+import com.monocept.app.enums.AgentSpecialization;
 import com.monocept.app.service.UserService;
 
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,6 +30,17 @@ public class UserController {
     @PostMapping("/agent")
     public ResponseEntity<UserResponseDto> createAgent(@Valid @RequestBody com.monocept.app.dto.UserRequestDto dto) {
         return ResponseEntity.ok(userService.createAgent(dto));
+    }
+
+    /**
+     * GET /api/users/agents?specialization=HEALTH
+     * Returns all AGENT users with the given specialization + all SUPER_AGENTs.
+     * Used to populate agent dropdown when customer/admin creates a policy.
+     */
+    @GetMapping("/agents")
+    public ResponseEntity<java.util.List<UserResponseDto>> getAgentsBySpecialization(
+            @RequestParam AgentSpecialization specialization) {
+        return ResponseEntity.ok(userService.getAgentsBySpecialization(specialization));
     }
 
     @GetMapping

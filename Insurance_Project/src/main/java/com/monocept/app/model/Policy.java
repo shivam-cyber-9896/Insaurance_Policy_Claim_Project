@@ -108,6 +108,19 @@ public class Policy {
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "policies"})
     private PolicyPlan policyPlan;
 
+    /**
+     * The agent assigned to this policy.
+     * Must have specialization matching the policy plan's product type, or SUPER.
+     */
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(
+        name = "agent_id",
+        nullable = true,
+        foreignKey = @ForeignKey(name = "fk_policy_agent")
+    )
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "customer"})
+    private com.monocept.app.model.User agent;
+
     @OneToMany(
         mappedBy = "policy",
         cascade = CascadeType.ALL,

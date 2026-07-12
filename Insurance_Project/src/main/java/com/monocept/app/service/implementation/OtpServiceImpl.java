@@ -40,7 +40,7 @@ public class OtpServiceImpl implements OtpService {
         // Save or update OTP verification record
         OtpVerification verification = otpRepository.findByEmail(email)
                 .orElse(new OtpVerification());
-        
+
         verification.setEmail(email);
         verification.setOtp(emailOtp);
         verification.setExpiresAt(expiresAt);
@@ -51,6 +51,8 @@ public class OtpServiceImpl implements OtpService {
         verification.setPurpose(OtpPurpose.REGISTRATION);
 
         otpRepository.save(verification);
+
+        log.info("GENERATED OTP - Email OTP: {}, Mobile OTP: {}", emailOtp, mobileOtp);
 
         // Send OTP via email
         String subject = "Email Verification OTP";
@@ -65,7 +67,8 @@ public class OtpServiceImpl implements OtpService {
         userRepository.findByEmail(email).ifPresent(user -> {
             String phoneNumber = user.getPhoneNumber();
             if (phoneNumber != null && !phoneNumber.trim().isEmpty()) {
-                String smsBody = "Thank you for registering. Your mobile verification OTP is: " + mobileOtp + ". Valid for 5 minutes.";
+                String smsBody = "Thank you for registering. Your mobile verification OTP is: " + mobileOtp
+                        + ". Valid for 5 minutes.";
                 smsService.sendSms(phoneNumber, smsBody);
             }
         });

@@ -1,5 +1,6 @@
 package com.monocept.app.dto;
 
+import com.monocept.app.enums.AgentSpecialization;
 import com.monocept.app.enums.Role;
 
 import jakarta.validation.constraints.Email;
@@ -36,4 +37,12 @@ public class UserRequestDto {
 
     @NotNull(message = "Role is required")
     private Role role;
-}
+
+    /**
+     * Specialization of the agent — which product type the agent handles.
+     * SUPER means the agent can handle all policy types and review any claim.
+     * Required when role = AGENT. Auto-set to SUPER when role = SUPER_AGENT.
+     * Leave null for CUSTOMER and ADMIN.
+     */
+    private AgentSpecialization specialization;
+}

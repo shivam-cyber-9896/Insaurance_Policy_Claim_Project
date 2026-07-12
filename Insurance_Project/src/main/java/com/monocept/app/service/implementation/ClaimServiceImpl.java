@@ -15,8 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.monocept.app.dto.*;
+import com.monocept.app.enums.AgentSpecialization;
 import com.monocept.app.enums.ClaimStatus;
 import com.monocept.app.enums.PolicyStatus;
+import com.monocept.app.enums.ProductType;
+import com.monocept.app.enums.Role;
 import com.monocept.app.exception.InvalidOperationException;
 import com.monocept.app.exception.ResourceNotFoundException;
 import com.monocept.app.model.Claim;
@@ -162,32 +165,78 @@ public class ClaimServiceImpl implements ClaimService {
 		Claim claim = findClaimById(claimId);
 
 		if (claim.getClaimStatus() == ClaimStatus.APPROVED || claim.getClaimStatus() == ClaimStatus.REJECTED) {
-
 			throw new InvalidOperationException("Approved or rejected claims cannot be modified.");
 		}
+
+		// Get logged-in agent
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		User loggedInUser = userRepository.findByEmail(email)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		// Specialization check: standard AGENT must match the policy's product type
+		if (loggedInUser.getRole() == Role.AGENT) {
+			ProductType policyProductType = claim.getPolicy().getPolicyPlan()
+					.getInsuranceProduct().getProductType();
+			if (loggedInUser.getSpecialization() == null ||
+					!loggedInUser.getSpecialization().name().equals(policyProductType.name())) {
+				throw new InvalidOperationException(
+						"You are not authorized to review this claim. " +
+						"Your specialization [" + loggedInUser.getSpecialization() + "] " +
+						"does not match the policy type [" + policyProductType + "].");
+			}
+		}
+		// SUPER_AGENT (specialization=SUPER) has no product-type restriction
+
+		// ── Agent suggestion rules ──────────────────────────────────────────
+		// Agents can ONLY suggest (RECOMMENDED or UNDER_REVIEW) — never directly APPROVE
+		if (dto.getRecommendedStatus() == ClaimStatus.APPROVED) {
+			throw new InvalidOperationException(
+					"Agents cannot directly approve claims. " +
+					"Set status to RECOMMENDED and the Admin will make the final approval.");
+		}
+
+		// Suggested amount must not exceed the original claim amount
+		if (dto.getSuggestedAmount() != null) {
+			if (dto.getSuggestedAmount().compareTo(claim.getClaimAmount()) > 0) {
+				throw new InvalidOperationException(
+						"Suggested amount [" + dto.getSuggestedAmount() + "] cannot exceed " +
+						"the original claim amount [" + claim.getClaimAmount() + "].");
+			}
+			claim.setAgentSuggestedAmount(dto.getSuggestedAmount());
+		} else {
+			// Default: suggest the full claim amount
+			claim.setAgentSuggestedAmount(claim.getClaimAmount());
+		}
+		// ────────────────────────────────────────────────────────────────────
+
 
 		ClaimStatus oldStatus = claim.getClaimStatus();
 
 		claim.setAgentRemarks(dto.getRemarks());
-
 		claim.setClaimStatus(dto.getRecommendedStatus());
 
-		if (dto.getRecommendedStatus() == ClaimStatus.REJECTED) {
-			Policy policy = policyRepository.findByIdWithLock(claim.getPolicy().getId())
-					.orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
-			policy.setRemainingCoverage(policy.getRemainingCoverage().add(claim.getClaimAmount()));
+		Policy policy = claim.getPolicy();
+		boolean wasAgentAssigned = false;
+		if (policy.getAgent() == null) {
+			policy.setAgent(loggedInUser);
 			policyRepository.save(policy);
+			wasAgentAssigned = true;
+			log.info("Auto-assigned agent {} to policy {} during claim review", loggedInUser.getId(), policy.getId());
+		}
+
+		if (dto.getRecommendedStatus() == ClaimStatus.REJECTED) {
+			Policy policyToUpdate = policyRepository.findByIdWithLock(policy.getId())
+					.orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
+			policyToUpdate.setRemainingCoverage(policyToUpdate.getRemainingCoverage().add(claim.getClaimAmount()));
+			if (wasAgentAssigned) {
+				policyToUpdate.setAgent(loggedInUser);
+			}
+			policyRepository.save(policyToUpdate);
 		}
 
 		Claim updatedClaim = claimRepository.save(claim);
 
-		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-
-		User loggedInUser = userRepository.findByEmail(email)
-				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
 		ClaimStatusHistory history = new ClaimStatusHistory();
-
 		history.setClaim(updatedClaim);
 		history.setPreviousStatus(oldStatus);
 		history.setNewStatus(dto.getRecommendedStatus());
@@ -205,8 +254,19 @@ public class ClaimServiceImpl implements ClaimService {
 			);
 		historyRepository.save(history);
 
+		if (wasAgentAssigned) {
+			try {
+				emailService.sendEmail(loggedInUser.getEmail(), "Policy Auto-Assigned - " + policy.getPolicyNumber(),
+						emailTemplateService.agentAssignedTemplate(loggedInUser.getFullName(),
+								policy.getCustomer().getUser().getFullName(), policy.getPolicyNumber()));
+			} catch (Exception e) {
+				log.error("Failed to send auto-assigned email to agent: ", e);
+			}
+		}
+
 		return convertToDto(updatedClaim);
 	}
+
 
 	@Override
 	@Transactional
@@ -318,6 +378,11 @@ public class ClaimServiceImpl implements ClaimService {
 	            .build())
 	        .collect(Collectors.toList());
 
+	    User agent = claim.getPolicy().getAgent();
+	    Long agentId = agent != null ? agent.getId() : null;
+	    String agentName = agent != null ? agent.getFullName() : null;
+	    String agentEmail = agent != null ? agent.getEmail() : null;
+
 	    return ClaimResponseDto.builder()
 	        .id(claim.getId())
 	        .claimNumber(claim.getClaimNumber())
@@ -328,10 +393,62 @@ public class ClaimServiceImpl implements ClaimService {
 	        .incidentDate(claim.getIncidentDate())
 	        .claimStatus(claim.getClaimStatus())
 	        .agentRemarks(claim.getAgentRemarks())
+	        .agentSuggestedAmount(claim.getAgentSuggestedAmount())
 	        .adminRemarks(claim.getAdminRemarks())
 	        .createdAt(claim.getCreatedAt())
 	        .updatedAt(claim.getUpdatedAt())
 	        .documents(documentDtos)
+	        .agentId(agentId)
+	        .agentName(agentName)
+	        .agentEmail(agentEmail)
 	        .build();
 	}
-}
+
+	@Override
+	@Transactional
+	public List<ClaimResponseDto> superRuleApproveClaims(ProductType productType, BigDecimal amountThreshold) {
+
+		log.info("Super Rule: Auto-approving RECOMMENDED claims for productType={} with amount<={}",
+				productType, amountThreshold);
+
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		User admin = userRepository.findByEmail(email)
+				.orElseThrow(() -> new ResourceNotFoundException("Admin user not found"));
+
+		List<Claim> eligibleClaims = claimRepository.findRecommendedClaimsForSuperRule(
+				ClaimStatus.RECOMMENDED, productType, amountThreshold);
+
+		if (eligibleClaims.isEmpty()) {
+			log.info("Super Rule: No eligible claims found.");
+			return java.util.Collections.emptyList();
+		}
+
+		return eligibleClaims.stream().map(claim -> {
+			ClaimStatus oldStatus = claim.getClaimStatus();
+			claim.setClaimStatus(ClaimStatus.APPROVED);
+			claim.setAdminRemarks("Auto-approved by Super Rule for " + productType + " policies with amount <= " + amountThreshold);
+			Claim saved = claimRepository.save(claim);
+
+			// Record history
+			ClaimStatusHistory history = new ClaimStatusHistory();
+			history.setClaim(saved);
+			history.setPreviousStatus(oldStatus);
+			history.setNewStatus(ClaimStatus.APPROVED);
+			history.setRemarks("Auto-approved via Super Rule");
+			history.setUpdatedBy(admin);
+			historyRepository.save(history);
+
+			// Notify customer
+			emailService.sendEmail(
+					saved.getPolicy().getCustomer().getUser().getEmail(),
+					"Claim Approved - " + saved.getClaimNumber(),
+					emailTemplateService.claimStatusUpdatedTemplate(
+							saved.getPolicy().getCustomer().getUser().getFullName(),
+							saved.getClaimNumber(),
+							ClaimStatus.APPROVED.toString(),
+							"Your claim has been auto-approved under the Super Rule."));
+
+			return convertToDto(saved);
+		}).collect(Collectors.toList());
+	}
+}
