@@ -43,6 +43,8 @@ public class ModelMapperConfig {
 				.addMappings(mapper -> {
 					mapper.map(com.monocept.app.model.ClaimStatusHistory::getChangedAt,
 							com.monocept.app.dto.ClaimHistoryResponseDto::setUpdatedDate);
+					mapper.map(src -> src.getUpdatedBy().getFullName(),
+							com.monocept.app.dto.ClaimHistoryResponseDto::setUpdatedBy);
 				});
 		return modelMapper;
 	}

@@ -57,8 +57,8 @@ public class DataSeeder implements CommandLineRunner {
             agent.setEmail(email);
             agent.setPassword(passwordEncoder.encode("Agent@12345"));
             agent.setPhoneNumber("8765432109");
-            agent.setRole(Role.SUPER_AGENT);
-            agent.setSpecialization(AgentSpecialization.SUPER);
+            agent.setRole(Role.AGENT);
+            agent.setSpecialization(AgentSpecialization.HEALTH);
             agent.setActive(true);
             userRepository.save(agent);
             System.out.println("Seeded default Agent user: agent@insurance.com");

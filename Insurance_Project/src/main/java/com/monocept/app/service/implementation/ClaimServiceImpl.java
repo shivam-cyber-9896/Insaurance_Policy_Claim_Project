@@ -44,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class ClaimServiceImpl implements ClaimService {
 
 	private final ClaimRepository claimRepository;
@@ -188,11 +189,11 @@ public class ClaimServiceImpl implements ClaimService {
 		// SUPER_AGENT (specialization=SUPER) has no product-type restriction
 
 		// ── Agent suggestion rules ──────────────────────────────────────────
-		// Agents can ONLY suggest (RECOMMENDED or UNDER_REVIEW) — never directly APPROVE
-		if (dto.getRecommendedStatus() == ClaimStatus.APPROVED) {
+		// Agents can ONLY suggest RECOMMENDED or UNDER_REVIEW — never directly APPROVE or REJECT
+		if (dto.getRecommendedStatus() != ClaimStatus.RECOMMENDED && dto.getRecommendedStatus() != ClaimStatus.UNDER_REVIEW) {
 			throw new InvalidOperationException(
-					"Agents cannot directly approve claims. " +
-					"Set status to RECOMMENDED and the Admin will make the final approval.");
+					"Agents can only suggest RECOMMENDED or UNDER_REVIEW status. " +
+					"Final decisions (APPROVED or REJECTED) must be made by the Admin.");
 		}
 
 		// Suggested amount must not exceed the original claim amount
@@ -222,16 +223,6 @@ public class ClaimServiceImpl implements ClaimService {
 			policyRepository.save(policy);
 			wasAgentAssigned = true;
 			log.info("Auto-assigned agent {} to policy {} during claim review", loggedInUser.getId(), policy.getId());
-		}
-
-		if (dto.getRecommendedStatus() == ClaimStatus.REJECTED) {
-			Policy policyToUpdate = policyRepository.findByIdWithLock(policy.getId())
-					.orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
-			policyToUpdate.setRemainingCoverage(policyToUpdate.getRemainingCoverage().add(claim.getClaimAmount()));
-			if (wasAgentAssigned) {
-				policyToUpdate.setAgent(loggedInUser);
-			}
-			policyRepository.save(policyToUpdate);
 		}
 
 		Claim updatedClaim = claimRepository.save(claim);
@@ -294,6 +285,15 @@ public class ClaimServiceImpl implements ClaimService {
 					.orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
 			policy.setRemainingCoverage(policy.getRemainingCoverage().add(claim.getClaimAmount()));
 			policyRepository.save(policy);
+		} else if (dto.getFinalDecisionStatus() == ClaimStatus.APPROVED) {
+			BigDecimal suggested = claim.getAgentSuggestedAmount();
+			if (suggested != null && suggested.compareTo(claim.getClaimAmount()) < 0) {
+				BigDecimal refund = claim.getClaimAmount().subtract(suggested);
+				Policy policy = policyRepository.findByIdWithLock(claim.getPolicy().getId())
+						.orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
+				policy.setRemainingCoverage(policy.getRemainingCoverage().add(refund));
+				policyRepository.save(policy);
+			}
 		}
 
 		Claim updatedClaim = claimRepository.save(claim);
@@ -401,6 +401,7 @@ public class ClaimServiceImpl implements ClaimService {
 	        .agentId(agentId)
 	        .agentName(agentName)
 	        .agentEmail(agentEmail)
+	        .productType(claim.getPolicy().getPolicyPlan().getInsuranceProduct().getProductType())
 	        .build();
 	}
 
@@ -427,6 +428,20 @@ public class ClaimServiceImpl implements ClaimService {
 			ClaimStatus oldStatus = claim.getClaimStatus();
 			claim.setClaimStatus(ClaimStatus.APPROVED);
 			claim.setAdminRemarks("Auto-approved by Super Rule for " + productType + " policies with amount <= " + amountThreshold);
+
+			BigDecimal suggested = claim.getAgentSuggestedAmount();
+			if (suggested != null && suggested.compareTo(claim.getClaimAmount()) < 0) {
+				BigDecimal refund = claim.getClaimAmount().subtract(suggested);
+				try {
+					Policy policy = policyRepository.findByIdWithLock(claim.getPolicy().getId())
+							.orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
+					policy.setRemainingCoverage(policy.getRemainingCoverage().add(refund));
+					policyRepository.save(policy);
+				} catch (Exception ex) {
+					log.error("Failed to refund remaining coverage difference during auto-approval: ", ex);
+				}
+			}
+
 			Claim saved = claimRepository.save(claim);
 
 			// Record history

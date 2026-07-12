@@ -1,6 +1,7 @@
 package com.monocept.app.dto;
 
 import com.monocept.app.enums.ClaimStatus;
+import com.monocept.app.enums.ProductType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,4 +34,5 @@ public class ClaimResponseDto {
 	private Long agentId;
 	private String agentName;
 	private String agentEmail;
+	private ProductType productType;
 }

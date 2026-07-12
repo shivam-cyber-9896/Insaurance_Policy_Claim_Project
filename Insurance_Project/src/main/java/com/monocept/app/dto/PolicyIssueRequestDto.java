@@ -26,6 +26,5 @@ public class PolicyIssueRequestDto {
     private LocalDate startDate;
 
     /** Agent assigned to this policy. Must match the policy's product type (or be SUPER specialization). */
-    @NotNull(message = "Agent id is required")
     private Long agentId;
 }
