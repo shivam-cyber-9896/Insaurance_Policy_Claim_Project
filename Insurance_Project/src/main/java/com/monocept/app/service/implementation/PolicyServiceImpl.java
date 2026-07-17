@@ -18,6 +18,7 @@ import com.monocept.app.dto.PolicyIssueRequestDto;
 import com.monocept.app.model.Policy;
 import com.monocept.app.model.PolicyPlan;
 import com.monocept.app.enums.AgentSpecialization;
+import com.monocept.app.enums.ClaimStatus;
 import com.monocept.app.enums.PolicyStatus;
 import com.monocept.app.enums.Role;
 import com.monocept.app.exception.InvalidOperationException;
@@ -29,6 +30,7 @@ import com.monocept.app.dto.PolicyResponseDto;
 import com.monocept.app.exception.ResourceNotFoundException;
 import com.monocept.app.model.Customer;
 import com.monocept.app.model.User;
+import com.monocept.app.repository.ClaimRepository;
 import com.monocept.app.repository.CustomerRepository;
 import com.monocept.app.repository.PolicyPlanRepository;
 import com.monocept.app.repository.PolicyRepository;
@@ -44,6 +46,7 @@ public class PolicyServiceImpl implements PolicyService {
 	private final PolicyPlanRepository planRepository;
 	private final CustomerRepository customerRepository;
 	private final UserRepository userRepository;
+	private final ClaimRepository claimRepository;
 	private final ModelMapper modelMapper;
 
 	private final EmailService emailService;
@@ -216,6 +219,17 @@ public class PolicyServiceImpl implements PolicyService {
 	public PolicyResponseDto cancelPolicy(Long id) {
 
 		Policy policy = findPolicyById(id);
+
+		// Block cancellation if any claim is still pending (not yet APPROVED or REJECTED)
+		boolean hasPendingClaims = claimRepository.existsByPolicyIdAndClaimStatusIn(
+				policy.getId(),
+				java.util.List.of(ClaimStatus.SUBMITTED, ClaimStatus.UNDER_REVIEW, ClaimStatus.RECOMMENDED));
+
+		if (hasPendingClaims) {
+			throw new InvalidOperationException(
+					"Cannot cancel policy '" + policy.getPolicyNumber() + "' because it has pending claims. "
+					+ "All claims must be resolved (APPROVED or REJECTED) before cancellation.");
+		}
 
 		policy.setPolicyStatus(PolicyStatus.CANCELLED);
 

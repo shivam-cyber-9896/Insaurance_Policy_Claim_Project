@@ -25,6 +25,12 @@ public interface ClaimRepository extends JpaRepository<Claim, Long> {
 
     boolean existsByPolicyIdAndClaimAmountAndIncidentDate(Long policyId, java.math.BigDecimal claimAmount, java.time.LocalDate incidentDate);
 
+    /**
+     * Returns true if the given policy has at least one claim with any of the given statuses.
+     * Used to block policy cancellation when unresolved claims exist.
+     */
+    boolean existsByPolicyIdAndClaimStatusIn(Long policyId, java.util.List<ClaimStatus> statuses);
+
     Page<Claim> findByPolicyCustomer(com.monocept.app.model.Customer customer, Pageable pageable);
 
     /**

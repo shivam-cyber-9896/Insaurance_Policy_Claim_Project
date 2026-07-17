@@ -73,7 +73,7 @@ public class SecurityConfig {
 						.requestMatchers("/api/policies/issue").hasAnyRole("ADMIN", "AGENT", "SUPER_AGENT")
 						.requestMatchers("/api/policies/my").hasRole("CUSTOMER")
 						.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/policies").hasAnyRole("ADMIN", "AGENT", "SUPER_AGENT")
-						.requestMatchers("/api/policies/{id}/cancel").hasAnyRole("ADMIN", "AGENT", "SUPER_AGENT")
+						.requestMatchers("/api/policies/{id}/cancel").hasAnyRole("ADMIN", "SUPER_AGENT")
 						.requestMatchers("/api/policies/**").hasAnyRole("ADMIN", "AGENT", "SUPER_AGENT", "CUSTOMER")
 
 						// Payments Module
