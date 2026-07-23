@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.monocept.app.dto.PlanRequestDto;
 import com.monocept.app.dto.PlanResponseDto;
+import com.monocept.app.exception.InvalidOperationException;
 import com.monocept.app.exception.ResourceNotFoundException;
 import com.monocept.app.model.InsuranceProduct;
 import com.monocept.app.model.PolicyPlan;
@@ -39,6 +40,11 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 
 		log.info("Creating policy plan");
 
+		if (dto.getCoverageAmount() != null && dto.getPremiumAmount() != null 
+				&& dto.getCoverageAmount().compareTo(dto.getPremiumAmount()) < 0) {
+			throw new InvalidOperationException("Plan coverage amount cannot be less than the plan premium amount");
+		}
+
 		InsuranceProduct product = productRepository.findById(dto.getProductId())
 				.orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
@@ -58,6 +64,11 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 	public PlanResponseDto updatePlan(Long id, PlanRequestDto dto) {
 
 		log.info("Updating policy plan: {}", id);
+
+		if (dto.getCoverageAmount() != null && dto.getPremiumAmount() != null 
+				&& dto.getCoverageAmount().compareTo(dto.getPremiumAmount()) < 0) {
+			throw new InvalidOperationException("Plan coverage amount cannot be less than the plan premium amount");
+		}
 
 		PolicyPlan plan = findPlanById(id);
 
