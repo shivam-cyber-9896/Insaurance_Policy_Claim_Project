@@ -19,4 +19,34 @@ public class CustomExceptions {
             super(message);
         }
     }
+
+    public static class PaymentProcessingException extends RuntimeException {
+        public PaymentProcessingException(String message) {
+            super(message);
+        }
+    }
+
+    public static class ClaimProcessingException extends RuntimeException {
+        public ClaimProcessingException(String message) {
+            super(message);
+        }
+    }
+
+    public static class PolicyExpiredException extends RuntimeException {
+        public PolicyExpiredException(String message) {
+            super(message);
+        }
+    }
+
+    public static class UnauthorizedAccessException extends RuntimeException {
+        public UnauthorizedAccessException(String message) {
+            super(message);
+        }
+    }
+
+    public static class QueryAlreadyResolvedException extends RuntimeException {
+        public QueryAlreadyResolvedException(String message) {
+            super(message);
+        }
+    }
 }

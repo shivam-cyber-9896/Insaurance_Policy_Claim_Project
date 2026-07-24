@@ -77,6 +77,7 @@ public class SecurityConfig {
 						.requestMatchers("/api/policies/**").hasAnyRole("ADMIN", "AGENT", "SUPER_AGENT", "CUSTOMER")
 
 						// Payments Module
+						.requestMatchers("/api/payments/create-razorpay-order/**", "/api/payments/verify-razorpay-payment").hasRole("CUSTOMER")
 						.requestMatchers("/api/payments/my").hasRole("CUSTOMER")
 						.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/payments").hasAnyRole("ADMIN", "AGENT", "SUPER_AGENT")
 						.requestMatchers("/api/payments/**").hasAnyRole("ADMIN", "AGENT", "SUPER_AGENT", "CUSTOMER")
@@ -89,6 +90,15 @@ public class SecurityConfig {
 
 						// Claim History Module
 						.requestMatchers("/api/claim-history/**").hasAnyRole("ADMIN", "AGENT", "SUPER_AGENT", "CUSTOMER")
+
+						// Customer Queries & Contact Us Module
+						.requestMatchers(org.springframework.http.HttpMethod.POST, "/api/queries").permitAll()
+						.requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/queries/*/reply").hasAnyRole("AGENT", "SUPER_AGENT")
+						.requestMatchers("/api/queries/my").hasAnyRole("CUSTOMER", "ADMIN", "AGENT", "SUPER_AGENT")
+						.requestMatchers("/api/queries/**").hasAnyRole("ADMIN", "AGENT", "SUPER_AGENT")
+
+						// Automatic Premium Calculator
+						.requestMatchers("/api/calculator/**").permitAll()
 
 						.anyRequest().authenticated())
 

@@ -33,28 +33,38 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 	private final PolicyPlanRepository planRepository;
 	private final InsuranceProductRepository productRepository;
 	private final ModelMapper modelMapper;
+	private final com.monocept.app.service.PremiumCalculatorService premiumCalculatorService;
 
 	@Override
 	@Transactional
 	public PlanResponseDto createPlan(PlanRequestDto dto) {
 
-		log.info("Creating policy plan");
-
-		if (dto.getCoverageAmount() != null && dto.getPremiumAmount() != null 
-				&& dto.getCoverageAmount().compareTo(dto.getPremiumAmount()) < 0) {
-			throw new InvalidOperationException("Plan coverage amount cannot be less than the plan premium amount");
-		}
+		log.info("Creating policy plan with admin-specified or actuarially calculated premium");
 
 		InsuranceProduct product = productRepository.findById(dto.getProductId())
 				.orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
+		java.math.BigDecimal formulaCalculatedPremium = calculatePremiumForPlan(dto, product);
+
 		PolicyPlan plan = modelMapper.map(dto, PolicyPlan.class);
+
+		// If admin entered a custom premium (> 0), use it; otherwise fallback to actuarial formula premium
+		if (dto.getPremiumAmount() != null && dto.getPremiumAmount().compareTo(java.math.BigDecimal.ZERO) > 0) {
+			plan.setPremiumAmount(dto.getPremiumAmount());
+		} else {
+			plan.setPremiumAmount(formulaCalculatedPremium);
+		}
+
+		if (plan.getCoverageAmount() != null
+				&& plan.getCoverageAmount().compareTo(plan.getPremiumAmount()) < 0) {
+			throw new InvalidOperationException("Plan coverage amount cannot be less than the plan premium amount");
+		}
 
 		plan.setInsuranceProduct(product);
 
 		PolicyPlan savedPlan = planRepository.save(plan);
 
-		log.info("Policy plan created successfully");
+		log.info("Policy plan created successfully with premium: {}", plan.getPremiumAmount());
 
 		return convertToDto(savedPlan);
 	}
@@ -65,19 +75,25 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 
 		log.info("Updating policy plan: {}", id);
 
-		if (dto.getCoverageAmount() != null && dto.getPremiumAmount() != null 
-				&& dto.getCoverageAmount().compareTo(dto.getPremiumAmount()) < 0) {
-			throw new InvalidOperationException("Plan coverage amount cannot be less than the plan premium amount");
-		}
-
 		PolicyPlan plan = findPlanById(id);
 
 		InsuranceProduct product = productRepository.findById(dto.getProductId())
 				.orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
+		java.math.BigDecimal formulaCalculatedPremium = calculatePremiumForPlan(dto, product);
+
+		java.math.BigDecimal effectivePremium = (dto.getPremiumAmount() != null && dto.getPremiumAmount().compareTo(java.math.BigDecimal.ZERO) > 0)
+				? dto.getPremiumAmount()
+				: formulaCalculatedPremium;
+
+		if (dto.getCoverageAmount() != null
+				&& dto.getCoverageAmount().compareTo(effectivePremium) < 0) {
+			throw new InvalidOperationException("Plan coverage amount cannot be less than the plan premium amount");
+		}
+
 		plan.setPlanName(dto.getPlanName());
 		plan.setCoverageAmount(dto.getCoverageAmount());
-		plan.setPremiumAmount(dto.getPremiumAmount());
+		plan.setPremiumAmount(effectivePremium);
 		plan.setPremiumType(dto.getPremiumType());
 		plan.setDurationYears(dto.getDurationYears());
 		plan.setTermsAndConditions(dto.getTermsAndConditions());
@@ -86,6 +102,8 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 		plan.setInsuranceProduct(product);
 
 		PolicyPlan updatedPlan = planRepository.save(plan);
+
+		log.info("Policy plan {} updated successfully with premium: {}", id, effectivePremium);
 
 		return convertToDto(updatedPlan);
 	}
@@ -124,6 +142,25 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 	public Page<PlanResponseDto> getAllPlans(Pageable pageable) {
 
 		return planRepository.findAll(pageable).map(this::convertToDto);
+	}
+
+	/**
+	 * Runs the actuarial premium formula (Risk Premium + Loading Charges - Discounts)
+	 * for the given request against the given product. Used by both create and update
+	 * so that the persisted premiumAmount is always the freshly computed, runtime value
+	 * and never a value supplied directly by the client.
+	 */
+	private java.math.BigDecimal calculatePremiumForPlan(PlanRequestDto dto, InsuranceProduct product) {
+
+		com.monocept.app.dto.PremiumCalculatorRequestDto calcReq = com.monocept.app.dto.PremiumCalculatorRequestDto.builder()
+				.coverageAmount(dto.getCoverageAmount())
+				.durationYears(dto.getDurationYears())
+				.premiumType(dto.getPremiumType())
+				.productType(product.getProductType())
+				.age(30)
+				.build();
+
+		return premiumCalculatorService.calculatePremium(calcReq).getCalculatedPremium();
 	}
 
 	private PolicyPlan findPlanById(Long id) {

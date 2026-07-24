@@ -7,8 +7,14 @@ import org.springframework.data.domain.Pageable;
 
 import com.monocept.app.dto.PaymentRequestDto;
 import com.monocept.app.dto.PaymentResponseDto;
+import com.monocept.app.dto.RazorpayOrderResponseDto;
+import com.monocept.app.dto.RazorpayVerificationRequestDto;
 
 public interface PaymentService {
+
+	RazorpayOrderResponseDto createRazorpayOrder(Long policyId);
+
+	PaymentResponseDto verifyAndRecordRazorpayPayment(RazorpayVerificationRequestDto dto);
 
 	PaymentResponseDto recordPayment(PaymentRequestDto dto);
 

@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 
 import com.monocept.app.dto.PaymentRequestDto;
 import com.monocept.app.dto.PaymentResponseDto;
+import com.monocept.app.dto.RazorpayOrderResponseDto;
+import com.monocept.app.dto.RazorpayVerificationRequestDto;
 import com.monocept.app.service.PaymentService;
 
 import jakarta.validation.Valid;
@@ -20,6 +22,16 @@ import lombok.RequiredArgsConstructor;
 public class PaymentController {
 
     private final PaymentService paymentService;
+
+    @PostMapping("/create-razorpay-order/{policyId}")
+    public ResponseEntity<RazorpayOrderResponseDto> createRazorpayOrder(@PathVariable Long policyId) {
+        return ResponseEntity.ok(paymentService.createRazorpayOrder(policyId));
+    }
+
+    @PostMapping("/verify-razorpay-payment")
+    public ResponseEntity<PaymentResponseDto> verifyAndRecordRazorpayPayment(@Valid @RequestBody RazorpayVerificationRequestDto dto) {
+        return ResponseEntity.ok(paymentService.verifyAndRecordRazorpayPayment(dto));
+    }
 
     @PostMapping
     public ResponseEntity<PaymentResponseDto> recordPayment(@Valid @RequestBody PaymentRequestDto dto) {

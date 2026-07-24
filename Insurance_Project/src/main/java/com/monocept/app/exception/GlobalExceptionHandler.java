@@ -68,6 +68,71 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(CustomExceptions.PaymentProcessingException.class)
+    public ResponseEntity<ApiErrorResponseDto> handlePaymentProcessing(
+            CustomExceptions.PaymentProcessingException ex, WebRequest request) {
+        ApiErrorResponseDto error = ApiErrorResponseDto.builder()
+                .timestamp(LocalDateTime.now())
+                .statusCode(HttpStatus.PAYMENT_REQUIRED.value())
+                .errorType("PAYMENT_PROCESSING_FAILED")
+                .message(ex.getMessage())
+                .path(request.getDescription(false))
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.PAYMENT_REQUIRED);
+    }
+
+    @ExceptionHandler(CustomExceptions.ClaimProcessingException.class)
+    public ResponseEntity<ApiErrorResponseDto> handleClaimProcessing(
+            CustomExceptions.ClaimProcessingException ex, WebRequest request) {
+        ApiErrorResponseDto error = ApiErrorResponseDto.builder()
+                .timestamp(LocalDateTime.now())
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .errorType("CLAIM_PROCESSING_FAILED")
+                .message(ex.getMessage())
+                .path(request.getDescription(false))
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(CustomExceptions.PolicyExpiredException.class)
+    public ResponseEntity<ApiErrorResponseDto> handlePolicyExpired(
+            CustomExceptions.PolicyExpiredException ex, WebRequest request) {
+        ApiErrorResponseDto error = ApiErrorResponseDto.builder()
+                .timestamp(LocalDateTime.now())
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .errorType("POLICY_EXPIRED")
+                .message(ex.getMessage())
+                .path(request.getDescription(false))
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(CustomExceptions.UnauthorizedAccessException.class)
+    public ResponseEntity<ApiErrorResponseDto> handleUnauthorizedAccess(
+            CustomExceptions.UnauthorizedAccessException ex, WebRequest request) {
+        ApiErrorResponseDto error = ApiErrorResponseDto.builder()
+                .timestamp(LocalDateTime.now())
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .errorType("UNAUTHORIZED_ACCESS")
+                .message(ex.getMessage())
+                .path(request.getDescription(false))
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(CustomExceptions.QueryAlreadyResolvedException.class)
+    public ResponseEntity<ApiErrorResponseDto> handleQueryAlreadyResolved(
+            CustomExceptions.QueryAlreadyResolvedException ex, WebRequest request) {
+        ApiErrorResponseDto error = ApiErrorResponseDto.builder()
+                .timestamp(LocalDateTime.now())
+                .statusCode(HttpStatus.CONFLICT.value())
+                .errorType("QUERY_ALREADY_RESOLVED")
+                .message(ex.getMessage())
+                .path(request.getDescription(false))
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(com.monocept.app.exception.InvalidOperationException.class)
     public ResponseEntity<ApiErrorResponseDto> handleInvalidOperation(
             com.monocept.app.exception.InvalidOperationException ex, WebRequest request) {

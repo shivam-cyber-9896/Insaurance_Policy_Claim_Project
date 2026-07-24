@@ -30,8 +30,6 @@ public class PlanRequestDto {
     @DecimalMin(value = "0.01", message = "Coverage amount must be greater than zero")
     private BigDecimal coverageAmount;
 
-    @NotNull(message = "Premium amount is required")
-    @DecimalMin(value = "0.01", message = "Premium amount must be greater than zero")
     private BigDecimal premiumAmount;
 
     @NotNull(message = "Premium type is required")

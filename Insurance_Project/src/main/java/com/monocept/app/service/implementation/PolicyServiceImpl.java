@@ -25,6 +25,7 @@ import com.monocept.app.exception.InvalidOperationException;
 import com.monocept.app.service.EmailService;
 import com.monocept.app.service.EmailTempleteService;
 import com.monocept.app.service.PolicyService;
+import com.monocept.app.service.PremiumCalculatorService;
 import com.monocept.app.dto.PolicyPurchaseRequestDto;
 import com.monocept.app.dto.PolicyResponseDto;
 import com.monocept.app.exception.ResourceNotFoundException;
@@ -51,12 +52,13 @@ public class PolicyServiceImpl implements PolicyService {
 
 	private final EmailService emailService;
 	private final EmailTempleteService emailTemplateService;
+	private final PremiumCalculatorService premiumCalculatorService;
 
 	@Override
 	@Transactional
 	public PolicyResponseDto purchasePolicy(PolicyPurchaseRequestDto dto) {
 
-		log.info("Purchasing policy");
+		log.info("Purchasing policy with runtime calculated premium using customer details");
 
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
@@ -68,6 +70,47 @@ public class PolicyServiceImpl implements PolicyService {
 
 		PolicyPlan plan = planRepository.findById(dto.getPlanId())
 				.orElseThrow(() -> new ResourceNotFoundException("Plan not found"));
+
+		// Determine customer age from date of birth
+		int customerAge = 30;
+		if (customer.getDateOfBirth() != null) {
+			customerAge = java.time.Period.between(customer.getDateOfBirth(), java.time.LocalDate.now()).getYears();
+			if (customerAge < 18) customerAge = 18;
+		}
+
+		// Calculate dynamic actuarial premium at runtime according to formula based on user's exact age
+		com.monocept.app.dto.PremiumCalculatorRequestDto calcReq = com.monocept.app.dto.PremiumCalculatorRequestDto.builder()
+				.coverageAmount(plan.getCoverageAmount())
+				.durationYears(plan.getDurationYears())
+				.premiumType(plan.getPremiumType())
+				.productType(plan.getInsuranceProduct().getProductType())
+				.age(customerAge)
+				.build();
+
+		BigDecimal calculatedRuntimePremium = premiumCalculatorService.calculatePremium(calcReq).getCalculatedPremium();
+
+		// Bind runtime premium: if plan premium was not explicitly set by admin, use calculated formula premium.
+		// If admin entered a custom base premium, apply runtime age risk loading for applicants older than 30.
+		if (plan.getPremiumAmount() == null || plan.getPremiumAmount().compareTo(BigDecimal.ZERO) <= 0) {
+			plan.setPremiumAmount(calculatedRuntimePremium);
+			planRepository.save(plan);
+		} else if (customerAge > 30) {
+			BigDecimal ageLoadingPercent;
+			if (customerAge < 45) {
+				ageLoadingPercent = new BigDecimal("0.15"); // +15% risk loading for age 30-44
+			} else if (customerAge < 60) {
+				ageLoadingPercent = new BigDecimal("0.35"); // +35% risk loading for age 45-59
+			} else {
+				ageLoadingPercent = new BigDecimal("0.60"); // +60% risk loading for age 60+
+			}
+			BigDecimal ageAdjustedPremium = plan.getPremiumAmount()
+					.multiply(BigDecimal.ONE.add(ageLoadingPercent))
+					.setScale(2, java.math.RoundingMode.HALF_UP);
+			log.info("Applied runtime age loading (+{}%) for customer age {}. Base Premium: ₹{}, Adjusted Premium: ₹{}",
+					ageLoadingPercent.multiply(new BigDecimal("100")).toPlainString(), customerAge, plan.getPremiumAmount(), ageAdjustedPremium);
+			plan.setPremiumAmount(ageAdjustedPremium);
+			planRepository.save(plan);
+		}
 
 		// Validate and assign agent
 		User agent = resolveAgent(dto.getAgentId(), plan.getInsuranceProduct().getProductType());
@@ -92,7 +135,7 @@ public class PolicyServiceImpl implements PolicyService {
 		emailService.sendEmail(customer.getUser().getEmail(), "Policy Created - " + savedPolicy.getPolicyNumber(),
 				emailTemplateService.policyCreatedTemplate(customer.getUser().getFullName(),
 						savedPolicy.getPolicyNumber(), plan.getPlanName(), savedPolicy.getStartDate().toString(),
-						savedPolicy.getEndDate().toString(), plan.getPremiumAmount().toString()));
+						savedPolicy.getEndDate().toString(), calculatedRuntimePremium.toString()));
 
 		if (savedPolicy.getAgent() != null) {
 			try {
