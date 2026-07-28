@@ -24,4 +24,6 @@ public class CustomerResponseDto {
     private String pinCode;
     private String nomineeName;
     private String nomineeRelation;
+    private Boolean isSmoker;
 }
+

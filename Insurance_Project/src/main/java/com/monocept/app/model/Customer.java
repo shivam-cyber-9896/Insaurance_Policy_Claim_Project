@@ -72,6 +72,11 @@ public class Customer {
 	@Column(name = "nominee_relation", nullable = false, length = 50)
 	private String nomineeRelation;
 
+	@Column(name = "is_smoker")
+	@Builder.Default
+	private Boolean isSmoker = false;
+
+
 	@CreationTimestamp
 	@Column(name = "created_at", updatable = false, nullable = false)
 	private LocalDateTime createdAt;

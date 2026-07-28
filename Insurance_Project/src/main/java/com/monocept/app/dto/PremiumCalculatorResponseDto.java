@@ -29,5 +29,8 @@ public class PremiumCalculatorResponseDto {
     private BigDecimal totalPremiumPaidOverTerm;
     private BigDecimal baseRatePercentage;
     private BigDecimal ageRiskFactor;
+    private Boolean isSmoker;
+    private BigDecimal smokerRiskFactor;
     private String breakdownSummary;
 }
+

@@ -36,4 +36,7 @@ public class PremiumCalculatorRequestDto {
     @Min(value = 18, message = "Age must be at least 18")
     @Max(value = 99, message = "Age must be less than 100")
     private Integer age;
+
+    private Boolean isSmoker;
 }
+

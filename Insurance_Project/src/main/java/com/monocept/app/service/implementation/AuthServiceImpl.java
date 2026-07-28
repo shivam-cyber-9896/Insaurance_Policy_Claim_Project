@@ -65,23 +65,9 @@ public class AuthServiceImpl implements AuthService {
 
 		Optional<User> existingUserOpt = userRepository.findByEmail(dto.getEmail());
 		if (existingUserOpt.isPresent()) {
-			User existingUser = existingUserOpt.get();
-			if (existingUser.isActive()) {
-				throw new DuplicateResourceException("Email already exists");
-			} else {
-				log.info("User already exists but is inactive. Updating details and resending OTP.");
-				existingUser.setFullName(dto.getFullName());
-				existingUser.setPassword(passwordEncoder.encode(dto.getPassword()));
-				existingUser.setPhoneNumber(dto.getPhoneNumber());
-				existingUser.setRole(com.monocept.app.enums.Role.CUSTOMER);
-				User savedUser = userRepository.save(existingUser);
-
-				otpService.sendOtp(savedUser.getEmail());
-
-				log.info("Inactive user registration details updated and OTP sent.");
-				return modelMapper.map(savedUser, UserResponseDto.class);
-			}
+			throw new DuplicateResourceException("Account with this email address already exists.");
 		}
+
 
 		User user = modelMapper.map(dto, User.class);
 
@@ -218,6 +204,7 @@ public class AuthServiceImpl implements AuthService {
 		verification.setMobileExpiresAt(expiresAt);
 		verification.setEmailVerified(false);
 		verification.setMobileVerified(false);
+		verification.setFailedAttempts(0);
 
 		otpRepository.save(verification);
 
@@ -257,7 +244,15 @@ public class AuthServiceImpl implements AuthService {
 				otp.getBytes(StandardCharsets.UTF_8));
 
 		if (!matches) {
-			throw new InvalidOperationException("Invalid recovery code. Please try again.");
+			int attempts = verification.getFailedAttempts() + 1;
+			verification.setFailedAttempts(attempts);
+			if (attempts >= 3) {
+				otpRepository.delete(verification);
+				throw new InvalidOperationException("Maximum OTP verification attempts (3) exceeded. Your OTP has been invalidated for security. Please request a new code.");
+			} else {
+				otpRepository.save(verification);
+				throw new InvalidOperationException("Invalid recovery code. Remaining attempts: " + (3 - attempts));
+			}
 		}
 
 		user.setPassword(passwordEncoder.encode(newPassword));
@@ -266,4 +261,5 @@ public class AuthServiceImpl implements AuthService {
 		otpRepository.delete(verification);
 		log.info("Password reset successful. Deleted OTP verification record.");
 	}
+
 }

@@ -41,4 +41,9 @@ public class OtpVerification {
     @Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private OtpPurpose purpose;
+
+    @Builder.Default
+    @Column(name = "failed_attempts", nullable = false)
+    private int failedAttempts = 0;
 }
+

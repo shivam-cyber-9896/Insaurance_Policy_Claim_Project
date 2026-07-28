@@ -78,39 +78,28 @@ public class PolicyServiceImpl implements PolicyService {
 			if (customerAge < 18) customerAge = 18;
 		}
 
-		// Calculate dynamic actuarial premium at runtime according to formula based on user's exact age
+		// Determine smoker status: from DTO if provided, otherwise customer profile
+		boolean isSmoker = Boolean.TRUE.equals(dto.getIsSmoker()) || Boolean.TRUE.equals(customer.getIsSmoker());
+
+		// Determine billing frequency: from DTO if provided, otherwise plan's default frequency
+		com.monocept.app.enums.PremiumType selectedFrequency = dto.getPremiumType() != null 
+				? dto.getPremiumType() 
+				: (plan.getPremiumType() != null ? plan.getPremiumType() : com.monocept.app.enums.PremiumType.ANNUAL);
+
+		// Calculate dynamic actuarial premium at runtime (including age loading + smoker surcharge + frequency factor)
 		com.monocept.app.dto.PremiumCalculatorRequestDto calcReq = com.monocept.app.dto.PremiumCalculatorRequestDto.builder()
 				.coverageAmount(plan.getCoverageAmount())
 				.durationYears(plan.getDurationYears())
-				.premiumType(plan.getPremiumType())
+				.premiumType(selectedFrequency)
 				.productType(plan.getInsuranceProduct().getProductType())
 				.age(customerAge)
+				.isSmoker(isSmoker)
 				.build();
 
 		BigDecimal calculatedRuntimePremium = premiumCalculatorService.calculatePremium(calcReq).getCalculatedPremium();
+		log.info("Calculated runtime installment premium: ₹{} for age {}, smoker: {}, frequency: {}",
+				calculatedRuntimePremium, customerAge, isSmoker, selectedFrequency);
 
-		// Bind runtime premium: if plan premium was not explicitly set by admin, use calculated formula premium.
-		// If admin entered a custom base premium, apply runtime age risk loading for applicants older than 30.
-		if (plan.getPremiumAmount() == null || plan.getPremiumAmount().compareTo(BigDecimal.ZERO) <= 0) {
-			plan.setPremiumAmount(calculatedRuntimePremium);
-			planRepository.save(plan);
-		} else if (customerAge > 30) {
-			BigDecimal ageLoadingPercent;
-			if (customerAge < 45) {
-				ageLoadingPercent = new BigDecimal("0.15"); // +15% risk loading for age 30-44
-			} else if (customerAge < 60) {
-				ageLoadingPercent = new BigDecimal("0.35"); // +35% risk loading for age 45-59
-			} else {
-				ageLoadingPercent = new BigDecimal("0.60"); // +60% risk loading for age 60+
-			}
-			BigDecimal ageAdjustedPremium = plan.getPremiumAmount()
-					.multiply(BigDecimal.ONE.add(ageLoadingPercent))
-					.setScale(2, java.math.RoundingMode.HALF_UP);
-			log.info("Applied runtime age loading (+{}%) for customer age {}. Base Premium: ₹{}, Adjusted Premium: ₹{}",
-					ageLoadingPercent.multiply(new BigDecimal("100")).toPlainString(), customerAge, plan.getPremiumAmount(), ageAdjustedPremium);
-			plan.setPremiumAmount(ageAdjustedPremium);
-			planRepository.save(plan);
-		}
 
 		// Validate and assign agent
 		User agent = resolveAgent(dto.getAgentId(), plan.getInsuranceProduct().getProductType());

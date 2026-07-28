@@ -109,7 +109,10 @@ public class CustomerServiceImpl implements CustomerService {
 
 		customer.setNomineeRelation(dto.getNomineeRelation());
 
+		customer.setIsSmoker(dto.getIsSmoker() != null ? dto.getIsSmoker() : false);
+
 		Customer updatedCustomer = customerRepository.save(customer);
+
 		emailService.sendEmail(
 			    updatedCustomer.getUser().getEmail(),
 			    "Customer Profile Updated",

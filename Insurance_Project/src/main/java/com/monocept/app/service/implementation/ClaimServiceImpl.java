@@ -70,12 +70,12 @@ public class ClaimServiceImpl implements ClaimService {
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
 		User loggedInUser = userRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
-		/*
-		 * if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) { if
-		 * (!policy.getCustomer().getUser().getEmail().equals(email)) { throw new
-		 * InvalidOperationException("You are not authorized to raise claim for this policy"
-		 * ); } }
-		 */
+		if (loggedInUser.getRole() == com.monocept.app.enums.Role.CUSTOMER) {
+			if (!policy.getCustomer().getUser().getEmail().equals(email)) {
+				throw new InvalidOperationException("You are not authorized to raise a claim for this policy.");
+			}
+		}
+
 
 		if (policy.getPolicyStatus() != PolicyStatus.ACTIVE) {
 			throw new InvalidOperationException("Claim can only be raised for active policy");
@@ -85,15 +85,14 @@ public class ClaimServiceImpl implements ClaimService {
 			throw new InvalidOperationException("Claim amount exceeds the remaining policy coverage.");
 		}
 
-		if (claimRepository.existsByPolicyIdAndClaimAmountAndIncidentDate(policy.getId(), dto.getClaimAmount(), dto.getIncidentDate())) {
-			throw new InvalidOperationException("A claim with the same amount and incident date already exists for this policy.");
+		boolean isPotentialDuplicate = claimRepository.existsByPolicyIdAndClaimAmountAndIncidentDate(policy.getId(), dto.getClaimAmount(), dto.getIncidentDate());
+		if (isPotentialDuplicate) {
+			log.warn("Potential duplicate claim detected for policyId {} with amount {} and date {}", policy.getId(), dto.getClaimAmount(), dto.getIncidentDate());
 		}
-
-		policy.setRemainingCoverage(policy.getRemainingCoverage().subtract(dto.getClaimAmount()));
-		policyRepository.saveAndFlush(policy);
 
 		Claim claim = modelMapper.map(dto, Claim.class);
 		claim.setPolicy(policy);
+
 
 		String claimNumber;
 		do {
@@ -280,21 +279,17 @@ public class ClaimServiceImpl implements ClaimService {
 
 		claim.setClaimStatus(dto.getFinalDecisionStatus());
 
-		if (dto.getFinalDecisionStatus() == ClaimStatus.REJECTED) {
+		if (dto.getFinalDecisionStatus() == ClaimStatus.APPROVED) {
+			BigDecimal approvedAmount = claim.getAgentSuggestedAmount() != null ? claim.getAgentSuggestedAmount() : claim.getClaimAmount();
 			Policy policy = policyRepository.findByIdWithLock(claim.getPolicy().getId())
 					.orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
-			policy.setRemainingCoverage(policy.getRemainingCoverage().add(claim.getClaimAmount()));
-			policyRepository.save(policy);
-		} else if (dto.getFinalDecisionStatus() == ClaimStatus.APPROVED) {
-			BigDecimal suggested = claim.getAgentSuggestedAmount();
-			if (suggested != null && suggested.compareTo(claim.getClaimAmount()) < 0) {
-				BigDecimal refund = claim.getClaimAmount().subtract(suggested);
-				Policy policy = policyRepository.findByIdWithLock(claim.getPolicy().getId())
-						.orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
-				policy.setRemainingCoverage(policy.getRemainingCoverage().add(refund));
-				policyRepository.save(policy);
+			if (approvedAmount.compareTo(policy.getRemainingCoverage()) > 0) {
+				throw new InvalidOperationException("Approved claim amount [₹" + approvedAmount + "] exceeds remaining policy coverage [₹" + policy.getRemainingCoverage() + "].");
 			}
+			policy.setRemainingCoverage(policy.getRemainingCoverage().subtract(approvedAmount));
+			policyRepository.save(policy);
 		}
+
 
 		Claim updatedClaim = claimRepository.save(claim);
 

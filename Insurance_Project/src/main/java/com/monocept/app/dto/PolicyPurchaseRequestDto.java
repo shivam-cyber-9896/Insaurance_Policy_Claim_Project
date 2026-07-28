@@ -25,4 +25,8 @@ public class PolicyPurchaseRequestDto {
     /** Agent assigned to this policy. Must match the policy's product type (or be SUPER specialization). */
     
     private Long agentId;
-}
+
+    private Boolean isSmoker;
+
+    private com.monocept.app.enums.PremiumType premiumType;
+}

@@ -266,9 +266,10 @@ public class PaymentServiceImpl implements PaymentService {
 		            policy.getPolicyNumber(),
 		            savedPayment.getAmount().toString(),
 		            savedPayment.getTransactionReference(),
-		            savedPayment.getPaymentDate().toString()
+		            savedPayment.getPaymentDate() != null ? savedPayment.getPaymentDate().toString() : java.time.LocalDateTime.now().toString()
 		        )
 		    );}
+
 		    if (savedPayment.getPaymentStatus() == PaymentStatus.FAILED) {
 		        emailService.sendEmail(
 		            policy.getCustomer().getUser().getEmail(),

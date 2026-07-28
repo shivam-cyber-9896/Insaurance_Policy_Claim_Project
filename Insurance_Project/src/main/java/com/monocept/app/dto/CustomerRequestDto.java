@@ -44,4 +44,7 @@ public class CustomerRequestDto {
 
 	@NotBlank(message = "Nominee relation is required")
 	private String nomineeRelation;
+
+	private Boolean isSmoker;
 }
+
