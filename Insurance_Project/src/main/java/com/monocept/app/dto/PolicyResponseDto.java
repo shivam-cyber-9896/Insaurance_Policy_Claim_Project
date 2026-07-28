@@ -36,4 +36,14 @@ public class PolicyResponseDto {
     private BigDecimal remainingCoverage;
     private Long agentId;
     private String agentName;
+
+    // New fields
+    private BigDecimal selectedCoverageAmount;
+
+    // Policyholder detail fields
+    private String holderName;
+    private String holderAddress;
+    private String holderPhone;
+    private String holderAadhaar;   // Masked: "XXXX-XXXX-1234"
+    private String vehicleNumber;
 }

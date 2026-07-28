@@ -26,9 +26,9 @@ public class PlanRequestDto {
     @NotBlank(message = "Plan name is required")
     private String planName;
 
-    @NotNull(message = "Coverage amount is required")
-    @DecimalMin(value = "0.01", message = "Coverage amount must be greater than zero")
-    private BigDecimal coverageAmount;
+    @NotNull(message = "Minimum coverage amount is required")
+    @DecimalMin(value = "50000.00", message = "Minimum coverage must be at least ₹50,000")
+    private BigDecimal minCoverageAmount;
 
     private BigDecimal premiumAmount;
 

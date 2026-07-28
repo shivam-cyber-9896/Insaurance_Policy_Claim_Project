@@ -86,7 +86,9 @@ public class PaymentServiceImpl implements PaymentService {
 			throw new InvalidOperationException("Premium already paid for this policy");
 		}
 
-		BigDecimal expectedPremium = policy.getPolicyPlan().getPremiumAmount();
+		BigDecimal expectedPremium = policy.getPremiumAmount() != null 
+				? policy.getPremiumAmount() 
+				: policy.getPolicyPlan().getPremiumAmount();
 		long amountInPaise = expectedPremium.multiply(new BigDecimal("100")).longValue();
 
 		try {
@@ -156,7 +158,9 @@ public class PaymentServiceImpl implements PaymentService {
 			throw new DuplicateResourceException("Payment with this Razorpay payment ID already recorded");
 		}
 
-		BigDecimal expectedPremium = policy.getPolicyPlan().getPremiumAmount();
+		BigDecimal expectedPremium = policy.getPremiumAmount() != null 
+				? policy.getPremiumAmount() 
+				: policy.getPolicyPlan().getPremiumAmount();
 
 		PremiumPayment payment = new PremiumPayment();
 		payment.setPolicy(policy);
@@ -230,15 +234,20 @@ public class PaymentServiceImpl implements PaymentService {
 		}
 
 		// Validate exact premium amount
-		BigDecimal expectedPremium = policy.getPolicyPlan().getPremiumAmount();
+		BigDecimal expectedPremium = policy.getPremiumAmount() != null 
+				? policy.getPremiumAmount() 
+				: policy.getPolicyPlan().getPremiumAmount();
 
 		if (dto.getAmount().compareTo(expectedPremium) != 0) {
 
 			throw new InvalidOperationException("Premium amount must be exactly ₹" + expectedPremium);
 		}
 
-		// Map DTO to Entity
-		PremiumPayment payment = modelMapper.map(dto, PremiumPayment.class);
+		// Create Payment Entity
+		PremiumPayment payment = new PremiumPayment();
+		payment.setAmount(dto.getAmount());
+		payment.setPaymentMode(dto.getPaymentMode() != null ? dto.getPaymentMode() : PaymentMode.CASH);
+		payment.setPaymentStatus(dto.getPaymentStatus() != null ? dto.getPaymentStatus() : PaymentStatus.SUCCESS);
 
 		payment.setPolicy(policy);
 		payment.setTransactionReference("TXN-"
@@ -347,11 +356,17 @@ public class PaymentServiceImpl implements PaymentService {
 	}
 
 	private PaymentResponseDto convertToDto(PremiumPayment payment) {
+		if (payment == null) return null;
 
-		PaymentResponseDto dto = modelMapper.map(payment, PaymentResponseDto.class);
-
-		dto.setPolicyNumber(payment.getPolicy().getPolicyNumber());
-
-		return dto;
+		return PaymentResponseDto.builder()
+				.id(payment.getId())
+				.policyId(payment.getPolicy() != null ? payment.getPolicy().getId() : null)
+				.policyNumber(payment.getPolicy() != null ? payment.getPolicy().getPolicyNumber() : null)
+				.amount(payment.getAmount())
+				.paymentDate(payment.getPaymentDate())
+				.paymentMode(payment.getPaymentMode())
+				.transactionReference(payment.getTransactionReference())
+				.paymentStatus(payment.getPaymentStatus())
+				.build();
 	}
 }

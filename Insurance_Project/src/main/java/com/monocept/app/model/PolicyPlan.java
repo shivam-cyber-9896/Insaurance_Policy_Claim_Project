@@ -13,6 +13,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.math.RoundingMode;
+
 @Entity
 @Table(
     name = "policy_plans",
@@ -56,12 +58,24 @@ public class PolicyPlan {
     @Column(name = "plan_name", nullable = false, length = 100)
     private String planName;
 
-    @NotNull(message = "Coverage amount is required")
-    @DecimalMin(value = "0.01", inclusive = true, message = "Coverage amount must be greater than zero")
+    @NotNull(message = "Minimum coverage amount is required")
+    @DecimalMin(value = "50000.00", inclusive = true, message = "Minimum coverage must be at least ₹50,000")
     @DecimalMax(value = "99999999.99", message = "Coverage amount exceeds maximum allowed limit")
     @Digits(integer = 8, fraction = 2, message = "Coverage amount must have at most 8 integer digits and 2 decimal places")
-    @Column(name = "coverage_amount", nullable = false, precision = 10, scale = 2)
-    private BigDecimal coverageAmount;
+    @Column(name = "min_coverage_amount", nullable = false, precision = 15, scale = 2)
+    private BigDecimal minCoverageAmount;
+
+    @NotNull(message = "Maximum coverage amount is required")
+    @Column(name = "max_coverage_amount", nullable = false, precision = 15, scale = 2)
+    private BigDecimal maxCoverageAmount;
+
+    @PrePersist
+    @PreUpdate
+    private void computeMaxCoverage() {
+        if (this.minCoverageAmount != null) {
+            this.maxCoverageAmount = this.minCoverageAmount.add(new BigDecimal("2000000")).setScale(2, RoundingMode.HALF_UP);
+        }
+    }
 
     @NotNull(message = "Premium amount is required")
     @DecimalMin(value = "0.01", inclusive = true, message = "Premium amount must be greater than zero")

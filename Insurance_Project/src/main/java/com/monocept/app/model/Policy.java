@@ -80,6 +80,35 @@ public class Policy {
     @Column(name = "remaining_coverage", nullable = false, precision = 10, scale = 2)
     private BigDecimal remainingCoverage;
 
+    // Customer's chosen sum insured within [plan.min, plan.max]
+    @Column(name = "selected_coverage_amount", precision = 15, scale = 2)
+    private BigDecimal selectedCoverageAmount;
+
+    // Locked billing frequency chosen at purchase time
+    @Enumerated(EnumType.STRING)
+    @Column(name = "premium_type", length = 20)
+    private com.monocept.app.enums.PremiumType premiumType;
+
+    // Locked calculated installment premium at purchase time
+    @Column(name = "premium_amount", precision = 15, scale = 2)
+    private BigDecimal premiumAmount;
+
+    // Policyholder detail fields
+    @Column(name = "holder_name", length = 100)
+    private String holderName;
+
+    @Column(name = "holder_address", length = 500)
+    private String holderAddress;
+
+    @Column(name = "holder_phone", length = 10)
+    private String holderPhone;
+
+    @Column(name = "holder_aadhaar", length = 255)
+    private String holderAadhaar;
+
+    @Column(name = "vehicle_number", length = 20)
+    private String vehicleNumber;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt;

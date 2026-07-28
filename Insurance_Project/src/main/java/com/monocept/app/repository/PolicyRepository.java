@@ -26,4 +26,10 @@ public interface PolicyRepository
     @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     @org.springframework.data.jpa.repository.Query("SELECT p FROM Policy p WHERE p.id = :id")
     java.util.Optional<Policy> findByIdWithLock(@org.springframework.data.repository.query.Param("id") Long id);
+
+    // Check if Aadhaar is already used in an active policy
+    boolean existsByHolderAadhaarAndPolicyStatusIn(String holderAadhaar, java.util.List<PolicyStatus> statuses);
+
+    // Check if vehicle number is already used in an active policy
+    boolean existsByVehicleNumberAndPolicyStatusIn(String vehicleNumber, java.util.List<PolicyStatus> statuses);
 }

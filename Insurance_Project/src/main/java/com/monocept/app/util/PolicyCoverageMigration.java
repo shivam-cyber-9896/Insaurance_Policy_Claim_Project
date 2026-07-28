@@ -29,7 +29,9 @@ public class PolicyCoverageMigration {
         
         for (Policy policy : policies) {
             if (policy.getRemainingCoverage() == null) {
-                BigDecimal totalCoverage = policy.getPolicyPlan().getCoverageAmount();
+                BigDecimal totalCoverage = policy.getSelectedCoverageAmount() != null 
+                        ? policy.getSelectedCoverageAmount() 
+                        : (policy.getPolicyPlan() != null ? policy.getPolicyPlan().getMinCoverageAmount() : BigDecimal.ZERO);
                 BigDecimal nonRejectedClaimsSum = BigDecimal.ZERO;
                 
                 if (policy.getClaims() != null) {

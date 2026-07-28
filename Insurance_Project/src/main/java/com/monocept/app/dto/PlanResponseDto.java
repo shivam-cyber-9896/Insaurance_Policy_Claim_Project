@@ -21,7 +21,8 @@ public class PlanResponseDto {
 	private String productName;
 	private ProductType productType;
 	private String planName;
-	private BigDecimal coverageAmount;
+	private BigDecimal minCoverageAmount;
+	private BigDecimal maxCoverageAmount;
 	private BigDecimal premiumAmount;
 	private PremiumType premiumType;
 	private Integer durationYears;

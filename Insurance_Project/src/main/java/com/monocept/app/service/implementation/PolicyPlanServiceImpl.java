@@ -55,8 +55,8 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 			plan.setPremiumAmount(formulaCalculatedPremium);
 		}
 
-		if (plan.getCoverageAmount() != null
-				&& plan.getCoverageAmount().compareTo(plan.getPremiumAmount()) < 0) {
+		if (plan.getMinCoverageAmount() != null
+				&& plan.getMinCoverageAmount().compareTo(plan.getPremiumAmount()) < 0) {
 			throw new InvalidOperationException("Plan coverage amount cannot be less than the plan premium amount");
 		}
 
@@ -86,13 +86,13 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 				? dto.getPremiumAmount()
 				: formulaCalculatedPremium;
 
-		if (dto.getCoverageAmount() != null
-				&& dto.getCoverageAmount().compareTo(effectivePremium) < 0) {
+		if (dto.getMinCoverageAmount() != null
+				&& dto.getMinCoverageAmount().compareTo(effectivePremium) < 0) {
 			throw new InvalidOperationException("Plan coverage amount cannot be less than the plan premium amount");
 		}
 
 		plan.setPlanName(dto.getPlanName());
-		plan.setCoverageAmount(dto.getCoverageAmount());
+		plan.setMinCoverageAmount(dto.getMinCoverageAmount());
 		plan.setPremiumAmount(effectivePremium);
 		plan.setPremiumType(dto.getPremiumType());
 		plan.setDurationYears(dto.getDurationYears());
@@ -153,7 +153,7 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 	private java.math.BigDecimal calculatePremiumForPlan(PlanRequestDto dto, InsuranceProduct product) {
 
 		com.monocept.app.dto.PremiumCalculatorRequestDto calcReq = com.monocept.app.dto.PremiumCalculatorRequestDto.builder()
-				.coverageAmount(dto.getCoverageAmount())
+				.coverageAmount(dto.getMinCoverageAmount())
 				.durationYears(dto.getDurationYears())
 				.premiumType(dto.getPremiumType())
 				.productType(product.getProductType())

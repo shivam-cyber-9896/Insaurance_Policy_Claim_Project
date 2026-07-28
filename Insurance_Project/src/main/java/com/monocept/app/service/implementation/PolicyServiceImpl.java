@@ -71,6 +71,50 @@ public class PolicyServiceImpl implements PolicyService {
 		PolicyPlan plan = planRepository.findById(dto.getPlanId())
 				.orElseThrow(() -> new ResourceNotFoundException("Plan not found"));
 
+		// ─── Validate selected coverage is within plan's [min, max] range ───
+		BigDecimal selectedCoverage = dto.getSelectedCoverageAmount();
+		if (selectedCoverage.compareTo(plan.getMinCoverageAmount()) < 0
+				|| selectedCoverage.compareTo(plan.getMaxCoverageAmount()) > 0) {
+			throw new InvalidOperationException(
+					"Selected coverage ₹" + selectedCoverage.toPlainString()
+					+ " is outside plan range [₹" + plan.getMinCoverageAmount().toPlainString()
+					+ " - ₹" + plan.getMaxCoverageAmount().toPlainString() + "]");
+		}
+
+		com.monocept.app.enums.ProductType productType = plan.getInsuranceProduct().getProductType();
+		java.util.List<PolicyStatus> activeStatuses = java.util.List.of(PolicyStatus.ACTIVE, PolicyStatus.PENDING_PAYMENT);
+
+		// ─── Validate Aadhaar number (Required for LIFE, HEALTH, TRAVEL; optional for MOTOR) ───
+		if (productType != com.monocept.app.enums.ProductType.MOTOR) {
+			if (dto.getHolderAadhaar() == null || !dto.getHolderAadhaar().matches("^\\d{12}$")) {
+				throw new InvalidOperationException("Aadhaar number is required and must be a 12-digit numeric number.");
+			}
+			if (policyRepository.existsByHolderAadhaarAndPolicyStatusIn(dto.getHolderAadhaar(), activeStatuses)) {
+				throw new InvalidOperationException("Aadhaar number already linked to an active policy.");
+			}
+		} else if (dto.getHolderAadhaar() != null && !dto.getHolderAadhaar().isBlank()) {
+			if (policyRepository.existsByHolderAadhaarAndPolicyStatusIn(dto.getHolderAadhaar(), activeStatuses)) {
+				throw new InvalidOperationException("Aadhaar number already linked to an active policy.");
+			}
+		}
+
+		// ─── Validate vehicle number for MOTOR insurance ───
+		String normalizedVehicle = null;
+		if (productType == com.monocept.app.enums.ProductType.MOTOR) {
+			if (dto.getVehicleNumber() == null || dto.getVehicleNumber().isBlank()) {
+				throw new InvalidOperationException("Vehicle number is required for Motor Insurance.");
+			}
+			normalizedVehicle = dto.getVehicleNumber().toUpperCase().replaceAll("\\s+", "");
+			if (!normalizedVehicle.matches("^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$")) {
+				throw new InvalidOperationException("Invalid car registration number format (e.g. MH01AB1234).");
+			}
+			if (policyRepository.existsByVehicleNumberAndPolicyStatusIn(normalizedVehicle, activeStatuses)) {
+				throw new InvalidOperationException("Vehicle number already insured under an active policy.");
+			}
+		} else if (dto.getVehicleNumber() != null && !dto.getVehicleNumber().isBlank()) {
+			normalizedVehicle = dto.getVehicleNumber().toUpperCase().replaceAll("\\s+", "");
+		}
+
 		// Determine customer age from date of birth
 		int customerAge = 30;
 		if (customer.getDateOfBirth() != null) {
@@ -82,27 +126,63 @@ public class PolicyServiceImpl implements PolicyService {
 		boolean isSmoker = Boolean.TRUE.equals(dto.getIsSmoker()) || Boolean.TRUE.equals(customer.getIsSmoker());
 
 		// Determine billing frequency: from DTO if provided, otherwise plan's default frequency
-		com.monocept.app.enums.PremiumType selectedFrequency = dto.getPremiumType() != null 
-				? dto.getPremiumType() 
-				: (plan.getPremiumType() != null ? plan.getPremiumType() : com.monocept.app.enums.PremiumType.ANNUAL);
+		com.monocept.app.enums.PremiumType selectedFrequency = (plan.getPremiumType() == com.monocept.app.enums.PremiumType.ONE_TIME)
+				? com.monocept.app.enums.PremiumType.ONE_TIME
+				: (dto.getPremiumType() != null ? dto.getPremiumType() : (plan.getPremiumType() != null ? plan.getPremiumType() : com.monocept.app.enums.PremiumType.ANNUAL));
 
-		// Calculate dynamic actuarial premium at runtime (including age loading + smoker surcharge + frequency factor)
-		com.monocept.app.dto.PremiumCalculatorRequestDto calcReq = com.monocept.app.dto.PremiumCalculatorRequestDto.builder()
-				.coverageAmount(plan.getCoverageAmount())
-				.durationYears(plan.getDurationYears())
-				.premiumType(selectedFrequency)
-				.productType(plan.getInsuranceProduct().getProductType())
-				.age(customerAge)
-				.isSmoker(isSmoker)
-				.build();
+		// ─── Calculate dynamic premium using Plan Base Premium if set, else Actuarial Calculator ───
+		BigDecimal calculatedRuntimePremium;
+		if (plan.getPremiumAmount() != null && plan.getPremiumAmount().compareTo(BigDecimal.ZERO) > 0) {
+			BigDecimal minCov = (plan.getMinCoverageAmount() != null && plan.getMinCoverageAmount().compareTo(BigDecimal.ZERO) > 0)
+					? plan.getMinCoverageAmount()
+					: new BigDecimal("50000");
 
-		BigDecimal calculatedRuntimePremium = premiumCalculatorService.calculatePremium(calcReq).getCalculatedPremium();
-		log.info("Calculated runtime installment premium: ₹{} for age {}, smoker: {}, frequency: {}",
-				calculatedRuntimePremium, customerAge, isSmoker, selectedFrequency);
+			BigDecimal scaledBase = plan.getPremiumAmount().multiply(selectedCoverage).divide(minCov, 4, java.math.RoundingMode.HALF_UP);
 
+			// Age loading percentage
+			BigDecimal ageLoadingPct = BigDecimal.ZERO;
+			if (customerAge >= 60) ageLoadingPct = new BigDecimal("0.60");
+			else if (customerAge >= 45) ageLoadingPct = new BigDecimal("0.35");
+			else if (customerAge >= 30) ageLoadingPct = new BigDecimal("0.15");
+
+			// Smoker loading percentage (Life & Health only)
+			BigDecimal smokerLoadingPct = BigDecimal.ZERO;
+			if (isSmoker && (productType == com.monocept.app.enums.ProductType.LIFE || productType == com.monocept.app.enums.ProductType.HEALTH)) {
+				if (customerAge >= 60) smokerLoadingPct = new BigDecimal("0.75");
+				else if (customerAge >= 45) smokerLoadingPct = new BigDecimal("0.50");
+				else if (customerAge >= 30) smokerLoadingPct = new BigDecimal("0.25");
+				else smokerLoadingPct = new BigDecimal("0.15");
+			}
+
+			BigDecimal totalLoadingMultiplier = BigDecimal.ONE.add(ageLoadingPct).add(smokerLoadingPct);
+			BigDecimal annualNet = scaledBase.multiply(totalLoadingMultiplier).setScale(2, java.math.RoundingMode.HALF_UP);
+
+			// Billing frequency installment factor
+			if (selectedFrequency == com.monocept.app.enums.PremiumType.HALF_YEARLY) {
+				calculatedRuntimePremium = annualNet.multiply(new BigDecimal("0.55")).setScale(2, java.math.RoundingMode.HALF_UP);
+			} else if (selectedFrequency == com.monocept.app.enums.PremiumType.QUARTERLY) {
+				calculatedRuntimePremium = annualNet.multiply(new BigDecimal("0.275")).setScale(2, java.math.RoundingMode.HALF_UP);
+			} else {
+				calculatedRuntimePremium = annualNet;
+			}
+		} else {
+			com.monocept.app.dto.PremiumCalculatorRequestDto calcReq = com.monocept.app.dto.PremiumCalculatorRequestDto.builder()
+					.coverageAmount(selectedCoverage)
+					.durationYears(plan.getDurationYears())
+					.premiumType(selectedFrequency)
+					.productType(productType)
+					.age(customerAge)
+					.isSmoker(isSmoker)
+					.build();
+
+			calculatedRuntimePremium = premiumCalculatorService.calculatePremium(calcReq).getCalculatedPremium();
+		}
+
+		log.info("Calculated runtime installment premium: ₹{} for coverage ₹{}, age {}, smoker: {}, frequency: {}",
+				calculatedRuntimePremium, selectedCoverage, customerAge, isSmoker, selectedFrequency);
 
 		// Validate and assign agent
-		User agent = resolveAgent(dto.getAgentId(), plan.getInsuranceProduct().getProductType());
+		User agent = resolveAgent(dto.getAgentId(), productType);
 
 		Policy policy = new Policy();
 		policy.setCustomer(customer);
@@ -117,7 +197,19 @@ public class PolicyServiceImpl implements PolicyService {
 		policy.setEndDate(dto.getStartDate().plusYears(plan.getDurationYears()));
 		policy.setPolicyStatus(PolicyStatus.PENDING_PAYMENT);
 		policy.setTotalPremiumPaid(BigDecimal.ZERO);
-		policy.setRemainingCoverage(plan.getCoverageAmount());
+
+		// ─── Persist new fields ───
+		policy.setSelectedCoverageAmount(selectedCoverage);
+		policy.setRemainingCoverage(selectedCoverage);
+		policy.setPremiumType(selectedFrequency);
+		policy.setPremiumAmount(calculatedRuntimePremium);
+
+		// Policyholder details
+		policy.setHolderName(dto.getHolderName());
+		policy.setHolderAddress(dto.getHolderAddress());
+		policy.setHolderPhone(dto.getHolderPhone());
+		policy.setHolderAadhaar(dto.getHolderAadhaar());
+		policy.setVehicleNumber(normalizedVehicle);
 
 		Policy savedPolicy = policyRepository.save(policy);
 
@@ -136,7 +228,7 @@ public class PolicyServiceImpl implements PolicyService {
 			}
 		}
 
-		log.info("Policy created successfully");
+		log.info("Policy created successfully with coverage ₹{}, frequency {}", selectedCoverage, selectedFrequency);
 
 		return convertToDto(savedPolicy);
 	}
@@ -166,7 +258,7 @@ public class PolicyServiceImpl implements PolicyService {
 		policy.setEndDate(dto.getStartDate().plusYears(plan.getDurationYears()));
 		policy.setPolicyStatus(PolicyStatus.PENDING_PAYMENT);
 		policy.setTotalPremiumPaid(BigDecimal.ZERO);
-		policy.setRemainingCoverage(plan.getCoverageAmount());
+		policy.setRemainingCoverage(plan.getMinCoverageAmount());
 
 		Policy savedPolicy = policyRepository.save(policy);
 
@@ -288,16 +380,44 @@ public class PolicyServiceImpl implements PolicyService {
 		PolicyResponseDto dto = modelMapper.map(policy, PolicyResponseDto.class);
 
 		dto.setId(policy.getId());
+		dto.setCustomerId(policy.getCustomer() != null ? policy.getCustomer().getId() : null);
+		dto.setCustomerName(policy.getCustomer() != null && policy.getCustomer().getUser() != null ? policy.getCustomer().getUser().getFullName() : null);
 
-		dto.setCustomerName(policy.getCustomer().getUser().getFullName());
+		dto.setPlanId(policy.getPolicyPlan() != null ? policy.getPolicyPlan().getId() : null);
+		dto.setPlanName(policy.getPolicyPlan() != null ? policy.getPolicyPlan().getPlanName() : null);
 
-		dto.setPlanName(policy.getPolicyPlan().getPlanName());
+		if (policy.getPolicyPlan() != null && policy.getPolicyPlan().getInsuranceProduct() != null) {
+			dto.setProductType(policy.getPolicyPlan().getInsuranceProduct().getProductType());
+		}
+		
+		// If policy has a selected coverage amount (purchased via dynamic range), use it; otherwise fallback to plan min
+		dto.setSelectedCoverageAmount(policy.getSelectedCoverageAmount() != null 
+				? policy.getSelectedCoverageAmount() 
+				: policy.getPolicyPlan().getMinCoverageAmount());
+		dto.setCoverageAmount(dto.getSelectedCoverageAmount());
 
-		dto.setProductType(policy.getPolicyPlan().getInsuranceProduct().getProductType());
-		dto.setCoverageAmount(policy.getPolicyPlan().getCoverageAmount());
-		dto.setPremiumAmount(policy.getPolicyPlan().getPremiumAmount());
-		dto.setPremiumType(policy.getPolicyPlan().getPremiumType());
+		// Use locked premium amount & type from policy if present; fallback to plan defaults
+		dto.setPremiumAmount(policy.getPremiumAmount() != null 
+				? policy.getPremiumAmount() 
+				: policy.getPolicyPlan().getPremiumAmount());
+		dto.setPremiumType(policy.getPremiumType() != null 
+				? policy.getPremiumType() 
+				: policy.getPolicyPlan().getPremiumType());
+
 		dto.setRemainingCoverage(policy.getRemainingCoverage());
+
+		// Policyholder details
+		dto.setHolderName(policy.getHolderName());
+		dto.setHolderAddress(policy.getHolderAddress());
+		dto.setHolderPhone(policy.getHolderPhone());
+		dto.setVehicleNumber(policy.getVehicleNumber());
+
+		// Mask Aadhaar: "XXXX-XXXX-1234" for security
+		if (policy.getHolderAadhaar() != null && policy.getHolderAadhaar().length() == 12) {
+			dto.setHolderAadhaar("XXXX-XXXX-" + policy.getHolderAadhaar().substring(8));
+		} else {
+			dto.setHolderAadhaar(policy.getHolderAadhaar());
+		}
 
 		if (policy.getAgent() != null) {
 			dto.setAgentId(policy.getAgent().getId());
