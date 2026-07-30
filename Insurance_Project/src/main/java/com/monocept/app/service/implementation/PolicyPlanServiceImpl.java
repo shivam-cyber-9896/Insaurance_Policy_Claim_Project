@@ -46,25 +46,28 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 
 		java.math.BigDecimal formulaCalculatedPremium = calculatePremiumForPlan(dto, product);
 
-		PolicyPlan plan = modelMapper.map(dto, PolicyPlan.class);
+		java.math.BigDecimal effectivePremium = (dto.getPremiumAmount() != null && dto.getPremiumAmount().compareTo(java.math.BigDecimal.ZERO) > 0)
+				? dto.getPremiumAmount()
+				: formulaCalculatedPremium;
 
-		// If admin entered a custom premium (> 0), use it; otherwise fallback to actuarial formula premium
-		if (dto.getPremiumAmount() != null && dto.getPremiumAmount().compareTo(java.math.BigDecimal.ZERO) > 0) {
-			plan.setPremiumAmount(dto.getPremiumAmount());
-		} else {
-			plan.setPremiumAmount(formulaCalculatedPremium);
-		}
-
-		if (plan.getMinCoverageAmount() != null
-				&& plan.getMinCoverageAmount().compareTo(plan.getPremiumAmount()) < 0) {
+		if (dto.getMinCoverageAmount() != null
+				&& dto.getMinCoverageAmount().compareTo(effectivePremium) < 0) {
 			throw new InvalidOperationException("Plan coverage amount cannot be less than the plan premium amount");
 		}
 
+		PolicyPlan plan = new PolicyPlan();
 		plan.setInsuranceProduct(product);
+		plan.setPlanName(dto.getPlanName());
+		plan.setMinCoverageAmount(dto.getMinCoverageAmount());
+		plan.setPremiumAmount(effectivePremium);
+		plan.setPremiumType(dto.getPremiumType());
+		plan.setDurationYears(dto.getDurationYears());
+		plan.setTermsAndConditions(dto.getTermsAndConditions());
+		plan.setActive(dto.isActive());
 
 		PolicyPlan savedPlan = planRepository.save(plan);
 
-		log.info("Policy plan created successfully with premium: {}", plan.getPremiumAmount());
+		log.info("Policy plan created successfully with premium: {}", savedPlan.getPremiumAmount());
 
 		return convertToDto(savedPlan);
 	}
