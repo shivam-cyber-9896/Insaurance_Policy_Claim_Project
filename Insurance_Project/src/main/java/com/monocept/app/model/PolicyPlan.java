@@ -65,6 +65,9 @@ public class PolicyPlan {
     @Column(name = "min_coverage_amount", nullable = false, precision = 15, scale = 2)
     private BigDecimal minCoverageAmount;
 
+    @Column(name = "coverage_amount", nullable = true, precision = 15, scale = 2)
+    private BigDecimal coverageAmount;
+
     @NotNull(message = "Maximum coverage amount is required")
     @Column(name = "max_coverage_amount", nullable = false, precision = 15, scale = 2)
     private BigDecimal maxCoverageAmount;
@@ -73,6 +76,7 @@ public class PolicyPlan {
     @PreUpdate
     private void computeMaxCoverage() {
         if (this.minCoverageAmount != null) {
+            this.coverageAmount = this.minCoverageAmount;
             this.maxCoverageAmount = this.minCoverageAmount.add(new BigDecimal("2000000")).setScale(2, RoundingMode.HALF_UP);
         }
     }

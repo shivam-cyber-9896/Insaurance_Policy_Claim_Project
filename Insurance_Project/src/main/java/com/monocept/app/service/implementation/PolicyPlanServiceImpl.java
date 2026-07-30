@@ -177,8 +177,12 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 		PlanResponseDto dto = modelMapper.map(plan, PlanResponseDto.class);
 
 		dto.setProductId(plan.getInsuranceProduct().getId());
-
 		dto.setProductName(plan.getInsuranceProduct().getProductName());
+
+		if (plan.getMinCoverageAmount() != null) {
+			dto.setMinCoverageAmount(plan.getMinCoverageAmount());
+			dto.setMaxCoverageAmount(plan.getMaxCoverageAmount());
+		}
 
 		return dto;
 	}
