@@ -22,7 +22,8 @@ import lombok.*;
         @Index(name = "idx_policy_status",   columnList = "policy_status"),
         @Index(name = "idx_policy_customer", columnList = "customer_id"),
         @Index(name = "idx_policy_plan",     columnList = "plan_id"),
-        @Index(name = "idx_policy_end_date", columnList = "end_date")
+        @Index(name = "idx_policy_end_date", columnList = "end_date"),
+        @Index(name = "idx_policy_premium_type", columnList = "premium_type")
     }
 )
 @Getter
@@ -66,6 +67,12 @@ public class Policy {
     @Column(name = "policy_status", nullable = false, length = 30)
     @Builder.Default
     private PolicyStatus policyStatus = PolicyStatus.ACTIVE;
+
+    @NotNull(message = "Premium type (billing frequency) is required")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "premium_type", nullable = false, length = 30)
+    @Builder.Default
+    private com.monocept.app.enums.PremiumType premiumType = com.monocept.app.enums.PremiumType.ANNUAL;
 
     @NotNull(message = "Total premium paid cannot be null")
     @DecimalMin(value = "0.00", inclusive = true, message = "Total premium paid cannot be negative")

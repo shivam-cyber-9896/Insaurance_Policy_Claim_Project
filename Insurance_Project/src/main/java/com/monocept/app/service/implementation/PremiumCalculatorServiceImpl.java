@@ -25,6 +25,7 @@ public class PremiumCalculatorServiceImpl implements PremiumCalculatorService {
         ProductType productType = dto.getProductType() != null ? dto.getProductType() : ProductType.LIFE;
         PremiumType premiumType = dto.getPremiumType() != null ? dto.getPremiumType() : PremiumType.ANNUAL;
         int age = dto.getAge() != null ? dto.getAge() : 30;
+        boolean isSmoker = dto.getIsSmoker() != null ? dto.getIsSmoker() : false;
 
         // 1. Base Product Risk Rate
         BigDecimal baseRate = getProductBaseRate(productType);
@@ -35,11 +36,22 @@ public class PremiumCalculatorServiceImpl implements PremiumCalculatorService {
                 ? totalRiskPremium.setScale(2, RoundingMode.HALF_UP) 
                 : totalRiskPremium.divide(new BigDecimal(duration), 2, RoundingMode.HALF_UP);
 
-        // 3. Step B: Calculate Loading Charges (Age Risk Loading + Admin/Underwriting Loading)
+        // 3. Step B: Calculate Loading Charges (Age Risk Loading + Smoker Loading + Frequency Interest + Admin/Underwriting Loading)
         BigDecimal ageLoadingPercent = getAgeLoadingPercent(age);
         BigDecimal ageLoadingAmount = riskPremium.multiply(ageLoadingPercent);
+        
+        BigDecimal smokerLoadingAmount = isSmoker ? riskPremium.multiply(new BigDecimal("0.15")) : BigDecimal.ZERO;
+        
+        BigDecimal frequencyInterestPercent = getFrequencyInterestPercent(premiumType);
+        BigDecimal frequencyInterestAmount = riskPremium.multiply(frequencyInterestPercent);
+        
         BigDecimal adminLoadingAmount = riskPremium.multiply(new BigDecimal("0.05")); // 5% admin & processing loading
-        BigDecimal loadingCharges = ageLoadingAmount.add(adminLoadingAmount).setScale(2, RoundingMode.HALF_UP);
+        
+        BigDecimal loadingCharges = ageLoadingAmount
+                .add(smokerLoadingAmount)
+                .add(frequencyInterestAmount)
+                .add(adminLoadingAmount)
+                .setScale(2, RoundingMode.HALF_UP);
 
         // 4. Step C: Calculate Discounts (Long-term policy discount + Lump-sum discount)
         BigDecimal durationDiscountPercent = getDurationDiscountPercent(duration);
@@ -62,12 +74,15 @@ public class PremiumCalculatorServiceImpl implements PremiumCalculatorService {
                 : finalCalculatedPremium.multiply(new BigDecimal(duration)).setScale(2, RoundingMode.HALF_UP);
 
         String breakdown = String.format(
-                "Formula Applied: Risk Premium (₹%s) + Loading Charges (₹%s) - Discounts (₹%s) = Final Net Premium (₹%s / %s).",
+                "Formula: Risk Premium (₹%s) + Age Load (₹%s) + Smoker Load (₹%s) + Freq Interest (₹%s) + Admin (₹%s) - Discounts (₹%s) = Final Net Premium (₹%s / %s).",
                 riskPremium.toPlainString(),
-                loadingCharges.toPlainString(),
+                ageLoadingAmount.setScale(2, RoundingMode.HALF_UP).toPlainString(),
+                smokerLoadingAmount.setScale(2, RoundingMode.HALF_UP).toPlainString(),
+                frequencyInterestAmount.setScale(2, RoundingMode.HALF_UP).toPlainString(),
+                adminLoadingAmount.setScale(2, RoundingMode.HALF_UP).toPlainString(),
                 discounts.toPlainString(),
                 finalCalculatedPremium.toPlainString(),
-                premiumType == PremiumType.ONE_TIME ? "one-time" : "year"
+                premiumType == PremiumType.ONE_TIME ? "one-time" : "installment"
         );
 
         return PremiumCalculatorResponseDto.builder()
@@ -122,6 +137,16 @@ public class PremiumCalculatorServiceImpl implements PremiumCalculatorService {
             return new BigDecimal("0.05"); // 5% discount for >= 5 years
         } else {
             return new BigDecimal("0.00");
+        }
+    }
+
+    private BigDecimal getFrequencyInterestPercent(PremiumType premiumType) {
+        if (premiumType == null) return BigDecimal.ZERO;
+        switch (premiumType) {
+            case MONTHLY: return new BigDecimal("0.10"); // +10%
+            case QUARTERLY: return new BigDecimal("0.08"); // +8%
+            case HALF_YEARLY: return new BigDecimal("0.05"); // +5%
+            default: return BigDecimal.ZERO; // ANNUAL or ONE_TIME
         }
     }
 }
