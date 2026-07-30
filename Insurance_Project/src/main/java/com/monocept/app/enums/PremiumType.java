@@ -4,5 +4,6 @@ public enum PremiumType {
     ONE_TIME,
     ANNUAL,
     HALF_YEARLY,
-    QUARTERLY
+    QUARTERLY,
+    MONTHLY
 }

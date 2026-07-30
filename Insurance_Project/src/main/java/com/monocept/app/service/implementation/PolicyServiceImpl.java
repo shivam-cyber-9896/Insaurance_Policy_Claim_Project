@@ -162,6 +162,8 @@ public class PolicyServiceImpl implements PolicyService {
 				calculatedRuntimePremium = annualNet.multiply(new BigDecimal("0.55")).setScale(0, java.math.RoundingMode.HALF_UP);
 			} else if (selectedFrequency == com.monocept.app.enums.PremiumType.QUARTERLY) {
 				calculatedRuntimePremium = annualNet.multiply(new BigDecimal("0.275")).setScale(0, java.math.RoundingMode.HALF_UP);
+			} else if (selectedFrequency == com.monocept.app.enums.PremiumType.MONTHLY) {
+				calculatedRuntimePremium = annualNet.multiply(new BigDecimal("0.095")).setScale(0, java.math.RoundingMode.HALF_UP);
 			} else {
 				calculatedRuntimePremium = annualNet;
 			}

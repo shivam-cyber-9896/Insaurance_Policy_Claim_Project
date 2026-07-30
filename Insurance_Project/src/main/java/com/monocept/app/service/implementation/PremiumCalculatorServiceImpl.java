@@ -71,6 +71,8 @@ public class PremiumCalculatorServiceImpl implements PremiumCalculatorService {
             installmentPremium = annualNetPremium.multiply(new BigDecimal("0.55")).setScale(0, RoundingMode.HALF_UP);
         } else if (premiumType == PremiumType.QUARTERLY) {
             installmentPremium = annualNetPremium.multiply(new BigDecimal("0.275")).setScale(0, RoundingMode.HALF_UP);
+        } else if (premiumType == PremiumType.MONTHLY) {
+            installmentPremium = annualNetPremium.multiply(new BigDecimal("0.095")).setScale(0, RoundingMode.HALF_UP);
         }
 
 
