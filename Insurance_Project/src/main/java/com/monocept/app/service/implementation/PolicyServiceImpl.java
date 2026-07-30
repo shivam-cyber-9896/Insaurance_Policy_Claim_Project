@@ -155,13 +155,13 @@ public class PolicyServiceImpl implements PolicyService {
 			}
 
 			BigDecimal totalLoadingMultiplier = BigDecimal.ONE.add(ageLoadingPct).add(smokerLoadingPct);
-			BigDecimal annualNet = scaledBase.multiply(totalLoadingMultiplier).setScale(2, java.math.RoundingMode.HALF_UP);
+			BigDecimal annualNet = scaledBase.multiply(totalLoadingMultiplier).setScale(0, java.math.RoundingMode.HALF_UP);
 
 			// Billing frequency installment factor
 			if (selectedFrequency == com.monocept.app.enums.PremiumType.HALF_YEARLY) {
-				calculatedRuntimePremium = annualNet.multiply(new BigDecimal("0.55")).setScale(2, java.math.RoundingMode.HALF_UP);
+				calculatedRuntimePremium = annualNet.multiply(new BigDecimal("0.55")).setScale(0, java.math.RoundingMode.HALF_UP);
 			} else if (selectedFrequency == com.monocept.app.enums.PremiumType.QUARTERLY) {
-				calculatedRuntimePremium = annualNet.multiply(new BigDecimal("0.275")).setScale(2, java.math.RoundingMode.HALF_UP);
+				calculatedRuntimePremium = annualNet.multiply(new BigDecimal("0.275")).setScale(0, java.math.RoundingMode.HALF_UP);
 			} else {
 				calculatedRuntimePremium = annualNet;
 			}
