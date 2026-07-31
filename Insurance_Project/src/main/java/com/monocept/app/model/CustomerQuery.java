@@ -10,7 +10,14 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 @Entity
-@Table(name = "customer_queries")
+@Table(
+    name = "customer_queries",
+    indexes = {
+        @Index(name = "idx_query_status",  columnList = "status"),
+        @Index(name = "idx_query_email",   columnList = "email"),
+        @Index(name = "idx_query_user_id", columnList = "user_id")
+    }
+)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

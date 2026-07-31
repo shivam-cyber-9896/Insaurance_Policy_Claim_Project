@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -37,6 +40,9 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 
 	@Override
 	@Transactional
+	@Caching(evict = {
+		@CacheEvict(value = "plans", allEntries = true)
+	})
 	public PlanResponseDto createPlan(PlanRequestDto dto) {
 
 		log.info("Creating policy plan with admin-specified or actuarially calculated premium");
@@ -74,6 +80,9 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 
 	@Override
 	@Transactional
+	@Caching(evict = {
+		@CacheEvict(value = "plans", allEntries = true)
+	})
 	public PlanResponseDto updatePlan(Long id, PlanRequestDto dto) {
 
 		log.info("Updating policy plan: {}", id);
@@ -113,6 +122,9 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 
 	@Override
 	@Transactional
+	@Caching(evict = {
+		@CacheEvict(value = "plans", allEntries = true)
+	})
 	public PlanResponseDto deactivatePlan(Long id) {
 
 		log.info("Deactivating plan: {}", id);
@@ -125,6 +137,7 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 	}
 
 	@Override
+	@Cacheable(value = "plans", key = "#id")
 	public PlanResponseDto getPlanById(Long id) {
 
 		return convertToDto(findPlanById(id));
@@ -132,6 +145,7 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 
 	
 	@Override
+	@Cacheable(value = "plans", key = "'byProduct:' + #productId")
 	public List<PlanResponseDto> getPlansByProduct(Long productId) {
 
 	    return planRepository
@@ -142,6 +156,7 @@ public class PolicyPlanServiceImpl implements PolicyPlanService {
 	}
 
 	@Override
+	@Cacheable(value = "plans", key = "'all:' + #pageable.pageNumber + ':' + #pageable.pageSize")
 	public Page<PlanResponseDto> getAllPlans(Pageable pageable) {
 
 		return planRepository.findAll(pageable).map(this::convertToDto);

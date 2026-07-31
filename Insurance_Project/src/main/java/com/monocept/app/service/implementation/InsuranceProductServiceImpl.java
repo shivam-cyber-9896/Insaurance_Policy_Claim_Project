@@ -4,6 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,6 +28,9 @@ public class InsuranceProductServiceImpl implements InsuranceProductService {
 	private final ModelMapper modelMapper;
 
 	@Override
+	@Caching(evict = {
+		@CacheEvict(value = "products", allEntries = true)
+	})
 	public ProductResponseDto createProduct(ProductRequestDto dto) {
 
 		log.info("Creating insurance product: {}", dto.getProductName());
@@ -46,6 +52,9 @@ public class InsuranceProductServiceImpl implements InsuranceProductService {
 	}
 
 	@Override
+	@Caching(evict = {
+		@CacheEvict(value = "products", allEntries = true)
+	})
 	public ProductResponseDto updateProduct(Long id, ProductRequestDto dto) {
 
 		log.info("Updating product with id: {}", id);
@@ -72,6 +81,9 @@ public class InsuranceProductServiceImpl implements InsuranceProductService {
 	}
 
 	@Override
+	@Caching(evict = {
+		@CacheEvict(value = "products", allEntries = true)
+	})
 	public ProductResponseDto deactivateProduct(Long id) {
 
 		log.info("Deactivating product id: {}", id);
@@ -88,6 +100,7 @@ public class InsuranceProductServiceImpl implements InsuranceProductService {
 	}
 
 	@Override
+	@Cacheable(value = "products", key = "#id")
 	public ProductResponseDto getProductById(Long id) {
 
 		log.info("Fetching product by id: {}", id);
@@ -98,6 +111,7 @@ public class InsuranceProductServiceImpl implements InsuranceProductService {
 	}
 
 	@Override
+	@Cacheable(value = "products", key = "'all:' + #pageable.pageNumber + ':' + #pageable.pageSize")
 	public Page<ProductResponseDto> getAllProducts(Pageable pageable) {
 
 		log.info("Fetching all products");

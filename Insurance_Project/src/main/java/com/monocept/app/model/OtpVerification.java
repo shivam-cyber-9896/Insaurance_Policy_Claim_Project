@@ -8,7 +8,13 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "otp_verifications")
+@Table(
+    name = "otp_verifications",
+    indexes = {
+        @Index(name = "idx_otp_purpose",     columnList = "purpose"),
+        @Index(name = "idx_otp_expires_at",  columnList = "expires_at")
+    }
+)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

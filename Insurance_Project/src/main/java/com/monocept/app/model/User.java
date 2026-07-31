@@ -11,7 +11,14 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 @Entity
-@Table(name = "users")
+@Table(
+    name = "users",
+    indexes = {
+        @Index(name = "idx_user_email",  columnList = "email"),
+        @Index(name = "idx_user_role",   columnList = "role"),
+        @Index(name = "idx_user_active", columnList = "is_active")
+    }
+)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
