@@ -25,5 +25,5 @@ public class CustomerResponseDto {
     private String nomineeName;
     private String nomineeRelation;
     private Boolean isSmoker;
+    private String aadharNumber;
 }
-

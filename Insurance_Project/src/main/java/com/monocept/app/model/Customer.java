@@ -76,6 +76,11 @@ public class Customer {
 	@Builder.Default
 	private Boolean isSmoker = false;
 
+	@NotBlank(message = "Aadhaar number is required")
+	@Pattern(regexp = "^\\d{12}$", message = "Aadhaar number must be exactly 12 digits")
+	@Column(name = "aadhar_number", nullable = false, length = 12)
+	private String aadharNumber;
+
 
 	@CreationTimestamp
 	@Column(name = "created_at", updatable = false, nullable = false)

@@ -111,6 +111,8 @@ public class CustomerServiceImpl implements CustomerService {
 
 		customer.setIsSmoker(dto.getIsSmoker() != null ? dto.getIsSmoker() : false);
 
+		customer.setAadharNumber(dto.getAadharNumber());
+
 		Customer updatedCustomer = customerRepository.save(customer);
 
 		emailService.sendEmail(

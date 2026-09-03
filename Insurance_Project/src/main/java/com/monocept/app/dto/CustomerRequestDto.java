@@ -46,5 +46,8 @@ public class CustomerRequestDto {
 	private String nomineeRelation;
 
 	private Boolean isSmoker;
-}
 
+	@NotBlank(message = "Aadhaar number is required")
+	@Pattern(regexp = "^\\d{12}$", message = "Aadhaar number must be exactly 12 digits")
+	private String aadharNumber;
+}
