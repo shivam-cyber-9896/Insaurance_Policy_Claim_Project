@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import com.monocept.app.service.TokenBlacklistService;
 
 @Component
 @RequiredArgsConstructor
@@ -20,6 +21,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     protected void doFilterInternal(
@@ -38,6 +40,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         jwt = authHeader.substring(7);
+
+        // Check if token has been revoked/blacklisted
+        if (tokenBlacklistService.isBlacklisted(jwt)) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"message\":\"Token has been blacklisted. Please login again.\"}");
+            return;
+        }
         try {
             userEmail = jwtService.extractUsername(jwt);
 

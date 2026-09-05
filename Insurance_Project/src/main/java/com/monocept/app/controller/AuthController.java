@@ -13,6 +13,12 @@ import com.monocept.app.dto.UserResponseDto;
 import com.monocept.app.dto.OtpRequestDto;
 import com.monocept.app.dto.ApiResponse;
 import com.monocept.app.service.AuthService;
+import com.monocept.app.service.TokenBlacklistService;
+import com.monocept.app.security.JwtService;
+import jakarta.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 
 import org.springframework.web.bind.annotation.RequestBody;
 import jakarta.validation.Valid;
@@ -24,6 +30,8 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
 
     private final AuthService authService;
+    private final TokenBlacklistService tokenBlacklistService;
+    private final JwtService jwtService;
 
     @PostMapping("/register")
     public ResponseEntity<UserResponseDto> register(
@@ -77,4 +85,22 @@ public class AuthController {
         authService.resetPassword(email, otp, newPassword);
         return ResponseEntity.ok(ApiResponse.success("Password reset successfully."));
     }
-}
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            try {
+                Date expiration = jwtService.extractExpiration(token);
+                LocalDateTime expiryDate = expiration.toInstant()
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDateTime();
+                tokenBlacklistService.blacklistToken(token, expiryDate);
+            } catch (Exception e) {
+                // If token is expired or malformed, it's already invalid
+            }
+        }
+        return ResponseEntity.ok(ApiResponse.success("Logged out and token blacklisted successfully."));
+    }
+}
