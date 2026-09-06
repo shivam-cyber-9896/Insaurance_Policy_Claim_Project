@@ -22,7 +22,9 @@ import lombok.*;
         @Index(name = "idx_policy_status",   columnList = "policy_status"),
         @Index(name = "idx_policy_customer", columnList = "customer_id"),
         @Index(name = "idx_policy_plan",     columnList = "plan_id"),
-        @Index(name = "idx_policy_end_date", columnList = "end_date")
+        @Index(name = "idx_policy_end_date", columnList = "end_date"),
+        @Index(name = "idx_policy_aadhaar",  columnList = "holder_aadhaar"),
+        @Index(name = "idx_policy_vehicle",  columnList = "vehicle_number")
     }
 )
 @Getter

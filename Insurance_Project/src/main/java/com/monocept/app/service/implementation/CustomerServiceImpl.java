@@ -79,6 +79,7 @@ public class CustomerServiceImpl implements CustomerService {
 	}
 
 	@Override
+	@org.springframework.cache.annotation.CacheEvict(value = "customers", key = "#id")
 	public CustomerResponseDto updateProfile(Long id, CustomerRequestDto dto) {
 
 		log.info("Updating customer profile");
@@ -125,6 +126,7 @@ public class CustomerServiceImpl implements CustomerService {
 	}
 
 	@Override
+	@org.springframework.cache.annotation.Cacheable(value = "customers", key = "#id")
 	public CustomerResponseDto getCustomerById(Long id) {
 
 		Customer customer = findCustomerById(id);

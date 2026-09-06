@@ -11,6 +11,7 @@ import com.monocept.app.model.User;
 
 public interface UserRepository extends JpaRepository<User, Long>{
     boolean existsByEmail(String email);
+    @org.springframework.cache.annotation.Cacheable(value = "users", key = "#email")
     Optional<User> findByEmail(String email);
 
     /** All agents with a specific specialization (for role-specific agent selection) */

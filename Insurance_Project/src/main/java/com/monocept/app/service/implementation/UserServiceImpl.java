@@ -49,6 +49,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	@org.springframework.cache.annotation.CacheEvict(value = "users", allEntries = true)
 	public UserResponseDto activateUser(Long id, UserStatusRequestDto dto) {
 		log.info("Activating user with id: {}", id);
 		User user = findUserById(id);
@@ -61,6 +62,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	@org.springframework.cache.annotation.CacheEvict(value = "users", allEntries = true)
 	public UserResponseDto deactivateUser(Long id, UserStatusRequestDto dto) {
 		log.info("Deactivating user with id: {}", id);
 		User user = findUserById(id);
