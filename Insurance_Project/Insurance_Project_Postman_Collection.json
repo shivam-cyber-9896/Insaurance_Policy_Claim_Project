@@ -1,1321 +1,2088 @@
 {
-    "info":  {
-                 "_postman_id":  "893c52a0-47bf-42f5-b280-928ab0df1fb7",
-                 "name":  "Insurance Project API Collection",
-                 "description":  "Collection of APIs for the Insurance Policy and Claim management system.",
-                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-             },
-    "item":  [
-                 {
-                     "name":  "Authentication",
-                     "item":  [
-                                  {
-                                      "name":  "Register User",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n    \"fullName\": \"Bob Vance\",\n    \"email\": \"bob.vance@insurance.com\",\n    \"password\": \"Customer@12345\",\n    \"phoneNumber\": \"9812345670\",\n    \"role\": \"CUSTOMER\"\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/auth/register",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "auth",
-                                                                               "register"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Verify OTP",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n    \"email\": \"bob.vance@insurance.com\",\n    \"otp\": \"123456\"\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/auth/verify-otp",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "auth",
-                                                                               "verify-otp"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Verify Mobile OTP",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n    \"email\": \"bob.vance@insurance.com\",\n    \"otp\": \"123456\"\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/auth/verify-mobile-otp",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "auth",
-                                                                               "verify-mobile-otp"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Resend OTP",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/auth/resend-otp?email=bob.vance@insurance.com",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "auth",
-                                                                               "resend-otp"
-                                                                           ],
-                                                                  "query":  [
-                                                                                {
-                                                                                    "key":  "email",
-                                                                                    "value":  "bob.vance@insurance.com"
-                                                                                }
-                                                                            ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Login User",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n    \"email\": \"admin@insurance.com\",\n    \"password\": \"Admin@12345\"\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/auth/login",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "auth",
-                                                                               "login"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  }
-                              ]
-                 },
-                 {
-                     "name":  "Users",
-                     "item":  [
-                                  {
-                                      "name":  "Create Agent Account (Admin)",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n    \"fullName\": \"Agent Smith\",\n    \"email\": \"agent.smith@insurance.com\",\n    \"password\": \"Agent@12345\",\n    \"phoneNumber\": \"9876543210\",\n    \"role\": \"AGENT\"\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/users/agent",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "users",
-                                                                               "agent"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Get All Users (Admin)",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/users?page=0\u0026size=10",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "users"
-                                                                           ],
-                                                                  "query":  [
-                                                                                {
-                                                                                    "key":  "page",
-                                                                                    "value":  "0"
-                                                                                },
-                                                                                {
-                                                                                    "key":  "size",
-                                                                                    "value":  "10"
-                                                                                }
-                                                                            ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Get User By ID (Admin)",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/users/1",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "users",
-                                                                               "1"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Activate User (Admin)",
-                                      "request":  {
-                                                      "method":  "PUT",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n    \"remarks\": \"Activating user account\"\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/users/1/activate",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "users",
-                                                                               "1",
-                                                                               "activate"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Deactivate User (Admin)",
-                                      "request":  {
-                                                      "method":  "PUT",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n    \"remarks\": \"Deactivating user account\"\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/users/1/deactivate",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "users",
-                                                                               "1",
-                                                                               "deactivate"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  }
-                              ]
-                 },
-                 {
-                     "name":  "Products",
-                     "item":  [
-                                  {
-                                      "name":  "Create Product (Admin)",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n    \"productName\": \"Term Life Gold\",\n    \"productType\": \"LIFE\",\n    \"description\": \"Comprehensive term life coverage plan for families\",\n    \"active\": true\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/products",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "products"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Get All Products",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/products?page=0\u0026size=10",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "products"
-                                                                           ],
-                                                                  "query":  [
-                                                                                {
-                                                                                    "key":  "page",
-                                                                                    "value":  "0"
-                                                                                },
-                                                                                {
-                                                                                    "key":  "size",
-                                                                                    "value":  "10"
-                                                                                }
-                                                                            ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Get Product By ID",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/products/1",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "products",
-                                                                               "1"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Update Product (Admin)",
-                                      "request":  {
-                                                      "method":  "PUT",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n    \"productName\": \"Term Life Platinum\",\n    \"productType\": \"LIFE\",\n    \"description\": \"Upgraded term life coverage plan\",\n    \"active\": true\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/products/1",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "products",
-                                                                               "1"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Deactivate Product (Admin)",
-                                      "request":  {
-                                                      "method":  "PUT",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/products/1/deactivate",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "products",
-                                                                               "1",
-                                                                               "deactivate"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  }
-                              ]
-                 },
-                 {
-                     "name":  "Plans",
-                     "item":  [
-                                  {
-                                      "name":  "Create Plan (Admin)",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n    \"productId\": 1,\n    \"planName\": \"Gold Life Shield\",\n    \"coverageAmount\": 5000000.00,\n    \"premiumAmount\": 12000.00,\n    \"premiumType\": \"ANNUAL\",\n    \"duration\": 20,\n    \"termsAndConditions\": \"No medical history hidden, standard payout rules apply.\",\n    \"active\": true\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/plans",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "plans"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Get All Plans",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/plans?page=0\u0026size=10",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "plans"
-                                                                           ],
-                                                                  "query":  [
-                                                                                {
-                                                                                    "key":  "page",
-                                                                                    "value":  "0"
-                                                                                },
-                                                                                {
-                                                                                    "key":  "size",
-                                                                                    "value":  "10"
-                                                                                }
-                                                                            ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Get Plan By ID",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/plans/1",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "plans",
-                                                                               "1"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Update Plan (Admin)",
-                                      "request":  {
-                                                      "method":  "PUT",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n    \"productId\": 1,\n    \"planName\": \"Gold Life Shield Plus\",\n    \"coverageAmount\": 6000000.00,\n    \"premiumAmount\": 15000.00,\n    \"premiumType\": \"ANNUAL\",\n    \"duration\": 25,\n    \"termsAndConditions\": \"Updated terms and conditions.\",\n    \"active\": true\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/plans/1",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "plans",
-                                                                               "1"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Deactivate Plan (Admin)",
-                                      "request":  {
-                                                      "method":  "PUT",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/plans/1/deactivate",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "plans",
-                                                                               "1",
-                                                                               "deactivate"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  }
-                              ]
-                 },
-                 {
-                     "name":  "Customers",
-                     "item":  [
-                                  {
-                                      "name":  "Create Customer Profile",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n    \"dateOfBirth\": \"1992-05-15\",\n    \"address\": \"456 Maple Avenue\",\n    \"city\": \"Scranton\",\n    \"state\": \"PA\",\n    \"pinCode\": \"185030\",\n    \"nomineeName\": \"Carol Vance\",\n    \"nomineeRelation\": \"Spouse\"\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/customers",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "customers"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Get Customer Profile",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/customers/3",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "customers",
-                                                                               "3"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Get My Profile",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/customers/profile",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "customers",
-                                                                               "profile"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Get All Customers (Admin/Agent)",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/customers?page=0\u0026size=10",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "customers"
-                                                                           ],
-                                                                  "query":  [
-                                                                                {
-                                                                                    "key":  "page",
-                                                                                    "value":  "0"
-                                                                                },
-                                                                                {
-                                                                                    "key":  "size",
-                                                                                    "value":  "10"
-                                                                                }
-                                                                            ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Update Customer Profile",
-                                      "request":  {
-                                                      "method":  "PUT",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n    \"dateOfBirth\": \"1992-05-15\",\n    \"address\": \"789 Vance Refrigeration Rd\",\n    \"city\": \"Scranton\",\n    \"state\": \"PA\",\n    \"pinCode\": \"185030\",\n    \"nomineeName\": \"Carol Vance\",\n    \"nomineeRelation\": \"Spouse\"\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/customers/3",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "customers",
-                                                                               "3"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  }
-                              ]
-                 },
-                 {
-                     "name":  "Policies",
-                     "item":  [
-                                  {
-                                      "name":  "Purchase Policy",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n    \"planId\": 1,\n    \"startDate\": \"2026-07-01\"\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/policies/purchase",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "policies",
-                                                                               "purchase"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Issue Policy (Admin/Agent)",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n    \"customerId\": 3,\n    \"planId\": 1,\n    \"startDate\": \"2026-07-01\"\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/policies/issue",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "policies",
-                                                                               "issue"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Get Policy By ID",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/policies/1",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "policies",
-                                                                               "1"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Get All Policies (Admin/Agent)",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/policies?page=0\u0026size=10",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "policies"
-                                                                           ],
-                                                                  "query":  [
-                                                                                {
-                                                                                    "key":  "page",
-                                                                                    "value":  "0"
-                                                                                },
-                                                                                {
-                                                                                    "key":  "size",
-                                                                                    "value":  "10"
-                                                                                }
-                                                                            ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Get My Policies",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/policies/my?page=0\u0026size=10",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "policies",
-                                                                               "my"
-                                                                           ],
-                                                                  "query":  [
-                                                                                {
-                                                                                    "key":  "page",
-                                                                                    "value":  "0"
-                                                                                },
-                                                                                {
-                                                                                    "key":  "size",
-                                                                                    "value":  "10"
-                                                                                }
-                                                                            ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Cancel Policy (Admin/Agent)",
-                                      "request":  {
-                                                      "method":  "PUT",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/policies/1/cancel",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "policies",
-                                                                               "1",
-                                                                               "cancel"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  }
-                              ]
-                 },
-                 {
-                     "name":  "Payments",
-                     "item":  [
-                                  {
-                                      "name":  "Record Payment",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n    \"policyId\": 1,\n    \"amount\": 12000.00,\n    \"paymentMode\": \"UPI\",\n    \"transactionReference\": \"TXN123456789\",\n    \"paymentStatus\": \"SUCCESS\"\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/payments",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "payments"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Get Payment By ID",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/payments/1",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "payments",
-                                                                               "1"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Get All Payments (Admin/Agent)",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/payments?page=0\u0026size=10",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "payments"
-                                                                           ],
-                                                                  "query":  [
-                                                                                {
-                                                                                    "key":  "page",
-                                                                                    "value":  "0"
-                                                                                },
-                                                                                {
-                                                                                    "key":  "size",
-                                                                                    "value":  "10"
-                                                                                }
-                                                                            ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Get My Payments",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/payments/my?page=0\u0026size=10",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "payments",
-                                                                               "my"
-                                                                           ],
-                                                                  "query":  [
-                                                                                {
-                                                                                    "key":  "page",
-                                                                                    "value":  "0"
-                                                                                },
-                                                                                {
-                                                                                    "key":  "size",
-                                                                                    "value":  "10"
-                                                                                }
-                                                                            ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Get Payments By Policy",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/payments/policy/1",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "payments",
-                                                                               "policy",
-                                                                               "1"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  }
-                              ]
-                 },
-                 {
-                     "name":  "Claims",
-                     "item":  [
-                                  {
-                                      "name":  "File Claim",
-                                      "request":  {
-                                                      "method":  "POST",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n    \"policyId\": 1,\n    \"claimAmount\": 150000.00,\n    \"claimReason\": \"Critical hospitalization for surgery\",\n    \"incidentDate\": \"2026-06-01\",\n    \"documents\": [\n        {\n            \"documentName\": \"Medical Bill\",\n            \"documentType\": \"PDF\",\n            \"documentReference\": \"DOC_BILL_001\"\n        },\n        {\n            \"documentName\": \"Discharge Summary\",\n            \"documentType\": \"PDF\",\n            \"documentReference\": \"DOC_SUM_002\"\n        }\n    ]\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/claims",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "claims"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Get Claim By ID",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/claims/1",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "claims",
-                                                                               "1"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Get All Claims (Admin/Agent)",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/claims?page=0\u0026size=10",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "claims"
-                                                                           ],
-                                                                  "query":  [
-                                                                                {
-                                                                                    "key":  "page",
-                                                                                    "value":  "0"
-                                                                                },
-                                                                                {
-                                                                                    "key":  "size",
-                                                                                    "value":  "10"
-                                                                                }
-                                                                            ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Get My Claims",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/claims/my?page=0\u0026size=10",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "claims",
-                                                                               "my"
-                                                                           ],
-                                                                  "query":  [
-                                                                                {
-                                                                                    "key":  "page",
-                                                                                    "value":  "0"
-                                                                                },
-                                                                                {
-                                                                                    "key":  "size",
-                                                                                    "value":  "10"
-                                                                                }
-                                                                            ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Review Claim (Agent)",
-                                      "request":  {
-                                                      "method":  "PUT",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n    \"recommendedStatus\": \"RECOMMENDED\",\n    \"remarks\": \"Documents verified. Recommended for approval.\"\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/claims/1/review",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "claims",
-                                                                               "1",
-                                                                               "review"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  },
-                                  {
-                                      "name":  "Claim Decision (Admin)",
-                                      "request":  {
-                                                      "method":  "PUT",
-                                                      "header":  [
-                                                                     {
-                                                                         "key":  "Content-Type",
-                                                                         "value":  "application/json"
-                                                                     }
-                                                                 ],
-                                                      "body":  {
-                                                                   "mode":  "raw",
-                                                                   "raw":  "{\n    \"finalDecisionStatus\": \"APPROVED\",\n    \"remarks\": \"Final approval granted.\"\n}"
-                                                               },
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/claims/1/decision",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "claims",
-                                                                               "1",
-                                                                               "decision"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  }
-                              ]
-                 },
-                 {
-                     "name":  "Claim History",
-                     "item":  [
-                                  {
-                                      "name":  "Get Claim History",
-                                      "request":  {
-                                                      "method":  "GET",
-                                                      "header":  [
-
-                                                                 ],
-                                                      "url":  {
-                                                                  "raw":  "{{baseUrl}}/api/claim-history/1",
-                                                                  "host":  [
-                                                                               "{{baseUrl}}"
-                                                                           ],
-                                                                  "path":  [
-                                                                               "api",
-                                                                               "claim-history",
-                                                                               "1"
-                                                                           ]
-                                                              }
-                                                  },
-                                      "response":  [
-
-                                                   ]
-                                  }
-                              ]
-                 }
-             ],
-    "auth":  {
-                 "type":  "bearer",
-                 "bearer":  [
+    "info": {
+        "_postman_id": "893c52a0-47bf-42f5-b280-928ab0df1fb7",
+        "name": "Insurance Project API Collection",
+        "description": "Complete API. Login -> JWT auto-saved to jwt_token. Protected endpoints inherit Bearer from collection.\nAdmin: admin@insurance.com / Admin@12345 | Agent: agent@insurance.com / Agent@12345 | Customer: customer@insurance.com / Customer@12345",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{jwt_token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8080",
+            "type": "string"
+        },
+        {
+            "key": "jwt_token",
+            "value": "paste_token_here_after_login",
+            "type": "string"
+        }
+    ],
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        },
+        {
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        }
+    ],
+    "item": [
+        {
+            "name": "🔐 Authentication",
+            "item": [
+                {
+                    "name": "Register User (Customer)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/register",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "register"
+                            ],
+                            "query": []
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"fullName\": \"Bob Vance\",\n    \"email\": \"bob.vance@insurance.com\",\n    \"password\": \"Customer@12345\",\n    \"phoneNumber\": \"9812345670\",\n    \"role\": \"CUSTOMER\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Verify Email OTP",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/verify-otp",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "verify-otp"
+                            ],
+                            "query": []
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"bob.vance@insurance.com\",\n    \"otp\": \"123456\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Verify Mobile OTP",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/verify-mobile-otp",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "verify-mobile-otp"
+                            ],
+                            "query": []
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"bob.vance@insurance.com\",\n    \"otp\": \"654321\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Resend OTP",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/resend-otp?email=bob.vance@insurance.com",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "resend-otp"
+                            ],
+                            "query": [
                                 {
-                                    "key":  "token",
-                                    "value":  "{{jwt_token}}",
-                                    "type":  "string"
+                                    "key": "email",
+                                    "value": "bob.vance@insurance.com"
                                 }
                             ]
-             },
-    "event":  [
-                  {
-                      "listen":  "prerequest",
-                      "script":  {
-                                     "type":  "text/javascript",
-                                     "exec":  [
-                                                  ""
-                                              ]
-                                 }
-                  },
-                  {
-                      "listen":  "test",
-                      "script":  {
-                                     "type":  "text/javascript",
-                                     "exec":  [
-                                                  ""
-                                              ]
-                                 }
-                  }
-              ],
-    "variable":  [
-                     {
-                         "key":  "baseUrl",
-                         "value":  "http://localhost:8080",
-                         "type":  "string"
-                     },
-                     {
-                         "key":  "jwt_token",
-                         "value":  "your_token_here",
-                         "type":  "string"
-                     }
-                 ]
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login - Admin",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "login"
+                            ],
+                            "query": []
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"admin@insurance.com\",\n    \"password\": \"Admin@12345\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var res = pm.response.json();",
+                                    "if (res.token) {",
+                                    "    pm.collectionVariables.set('jwt_token', res.token);",
+                                    "    console.log('JWT saved');",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Login - Agent",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "login"
+                            ],
+                            "query": []
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"agent@insurance.com\",\n    \"password\": \"Agent@12345\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var res = pm.response.json();",
+                                    "if (res.token) {",
+                                    "    pm.collectionVariables.set('jwt_token', res.token);",
+                                    "    console.log('JWT saved');",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Login - SuperAgent",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "login"
+                            ],
+                            "query": []
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"superagent@insurance.com\",\n    \"password\": \"Super@12345\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var res = pm.response.json();",
+                                    "if (res.token) {",
+                                    "    pm.collectionVariables.set('jwt_token', res.token);",
+                                    "    console.log('JWT saved');",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Login - Customer",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "login"
+                            ],
+                            "query": []
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"customer@insurance.com\",\n    \"password\": \"Customer@12345\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var res = pm.response.json();",
+                                    "if (res.token) {",
+                                    "    pm.collectionVariables.set('jwt_token', res.token);",
+                                    "    console.log('JWT saved');",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Logout (Blacklist Token)",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/logout",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "logout"
+                            ],
+                            "query": [],
+                            "description": "Adds Bearer token to DB blacklist. Instantly invalid. Hourly cron purges expired rows."
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Forgot Password",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/forgot-password?email=bob.vance@insurance.com",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "forgot-password"
+                            ],
+                            "query": [
+                                {
+                                    "key": "email",
+                                    "value": "bob.vance@insurance.com"
+                                }
+                            ]
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reset Password",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/reset-password?email=bob.vance@insurance.com&otp=123456&newPassword=NewPass@123",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "reset-password"
+                            ],
+                            "query": [
+                                {
+                                    "key": "email",
+                                    "value": "bob.vance@insurance.com"
+                                },
+                                {
+                                    "key": "otp",
+                                    "value": "123456"
+                                },
+                                {
+                                    "key": "newPassword",
+                                    "value": "NewPass@123"
+                                }
+                            ]
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "👤 Users (Admin Only)",
+            "item": [
+                {
+                    "name": "Create Agent Account",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/users/agent",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "agent"
+                            ],
+                            "query": []
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"fullName\": \"Agent Smith\",\n    \"email\": \"agent.smith@insurance.com\",\n    \"password\": \"Agent@12345\",\n    \"phoneNumber\": \"9876543210\",\n    \"role\": \"AGENT\",\n    \"specialization\": \"HEALTH\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get All Users",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/users?page=0&size=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get User By ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/users/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1"
+                            ],
+                            "query": []
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Activate User",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/users/1/activate",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1",
+                                "activate"
+                            ],
+                            "query": []
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"remarks\": \"Account verified and activated\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Deactivate User",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/users/1/deactivate",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1",
+                                "deactivate"
+                            ],
+                            "query": []
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"remarks\": \"Suspended for policy violation\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "📦 Insurance Products",
+            "item": [
+                {
+                    "name": "Create Product (Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/products",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "products"
+                            ],
+                            "query": []
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"productName\": \"Term Life Gold\",\n    \"productType\": \"LIFE\",\n    \"description\": \"Comprehensive term life coverage\",\n    \"active\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get All Products",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/products?page=0&size=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "products"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Product By ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/products/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "products",
+                                "1"
+                            ],
+                            "query": []
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Product (Admin)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/products/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "products",
+                                "1"
+                            ],
+                            "query": []
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"productName\": \"Term Life Platinum\",\n    \"productType\": \"LIFE\",\n    \"description\": \"Updated premium coverage\",\n    \"active\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Deactivate Product (Admin)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/products/1/deactivate",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "products",
+                                "1",
+                                "deactivate"
+                            ],
+                            "query": []
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "📋 Policy Plans",
+            "item": [
+                {
+                    "name": "Create Plan (Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/plans",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "plans"
+                            ],
+                            "query": []
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"productId\": 1,\n    \"planName\": \"Gold Life Shield\",\n    \"premiumAmount\": 12000.00,\n    \"premiumType\": \"ANNUAL\",\n    \"durationYears\": 20,\n    \"minCoverageAmount\": 500000.00,\n    \"maxCoverageAmount\": 5000000.00,\n    \"minAgeLimit\": 18,\n    \"maxAgeLimit\": 65,\n    \"termsAndConditions\": \"No pre-existing conditions in past 2 years.\",\n    \"active\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get All Plans",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/plans?page=0&size=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "plans"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Plans By Product ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/plans/product/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "plans",
+                                "product",
+                                "1"
+                            ],
+                            "query": []
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Plan By ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/plans/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "plans",
+                                "1"
+                            ],
+                            "query": []
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Plan (Admin)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/plans/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "plans",
+                                "1"
+                            ],
+                            "query": []
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"productId\": 1,\n    \"planName\": \"Gold Life Shield Plus\",\n    \"premiumAmount\": 15000.00,\n    \"premiumType\": \"ANNUAL\",\n    \"durationYears\": 25,\n    \"minCoverageAmount\": 500000.00,\n    \"maxCoverageAmount\": 10000000.00,\n    \"minAgeLimit\": 18,\n    \"maxAgeLimit\": 70,\n    \"termsAndConditions\": \"Updated terms.\",\n    \"active\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Deactivate Plan (Admin)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/plans/1/deactivate",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "plans",
+                                "1",
+                                "deactivate"
+                            ],
+                            "query": []
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "🧮 Premium Calculator (Public)",
+            "item": [
+                {
+                    "name": "Calculate - Life Annual",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/calculator/calculate",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "calculator",
+                                "calculate"
+                            ],
+                            "query": []
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"productType\": \"LIFE\",\n    \"coverageAmount\": 2000000.00,\n    \"durationYears\": 20,\n    \"age\": 35,\n    \"isSmoker\": false,\n    \"premiumType\": \"ANNUAL\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Calculate - Health Smoker Monthly",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/calculator/calculate",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "calculator",
+                                "calculate"
+                            ],
+                            "query": []
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"productType\": \"HEALTH\",\n    \"coverageAmount\": 500000.00,\n    \"durationYears\": 5,\n    \"age\": 50,\n    \"isSmoker\": true,\n    \"premiumType\": \"MONTHLY\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Calculate - Motor Annual",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/calculator/calculate",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "calculator",
+                                "calculate"
+                            ],
+                            "query": []
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"productType\": \"MOTOR\",\n    \"coverageAmount\": 300000.00,\n    \"durationYears\": 1,\n    \"age\": 28,\n    \"isSmoker\": false,\n    \"premiumType\": \"ANNUAL\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Calculate - Travel Quarterly",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/calculator/calculate",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "calculator",
+                                "calculate"
+                            ],
+                            "query": []
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"productType\": \"TRAVEL\",\n    \"coverageAmount\": 1000000.00,\n    \"durationYears\": 2,\n    \"age\": 40,\n    \"isSmoker\": false,\n    \"premiumType\": \"QUARTERLY\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "👥 Customers",
+            "item": [
+                {
+                    "name": "Create Customer Profile (CUSTOMER)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/customers",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "customers"
+                            ],
+                            "query": []
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"dateOfBirth\": \"1992-05-15\",\n    \"address\": \"456 Maple Avenue\",\n    \"city\": \"Scranton\",\n    \"state\": \"PA\",\n    \"pinCode\": \"185030\",\n    \"nomineeName\": \"Carol Vance\",\n    \"nomineeRelation\": \"Spouse\",\n    \"isSmoker\": false,\n    \"aadhaarNumber\": \"123456789012\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get My Profile (CUSTOMER)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/customers/profile",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "customers",
+                                "profile"
+                            ],
+                            "query": []
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get All Customers (Admin/Agent)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/customers?page=0&size=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "customers"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Customer By ID (Admin/Agent)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/customers/3",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "customers",
+                                "3"
+                            ],
+                            "query": []
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Customer Profile (CUSTOMER)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/customers/3",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "customers",
+                                "3"
+                            ],
+                            "query": []
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"dateOfBirth\": \"1992-05-15\",\n    \"address\": \"789 Vance Refrigeration Rd\",\n    \"city\": \"Scranton\",\n    \"state\": \"PA\",\n    \"pinCode\": \"185030\",\n    \"nomineeName\": \"Carol Vance\",\n    \"nomineeRelation\": \"Spouse\",\n    \"isSmoker\": false,\n    \"aadhaarNumber\": \"123456789012\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "📜 Policies",
+            "item": [
+                {
+                    "name": "Purchase Policy - Life ANNUAL (CUSTOMER)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/policies/purchase",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "policies",
+                                "purchase"
+                            ],
+                            "query": []
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"planId\": 1,\n    \"startDate\": \"2026-10-01\",\n    \"selectedCoverageAmount\": 2000000.00,\n    \"premiumType\": \"ANNUAL\",\n    \"holderAadhaar\": \"123456789012\",\n    \"isSmoker\": false\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Purchase Policy - Life MONTHLY Smoker (CUSTOMER)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/policies/purchase",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "policies",
+                                "purchase"
+                            ],
+                            "query": []
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"planId\": 1,\n    \"startDate\": \"2026-10-01\",\n    \"selectedCoverageAmount\": 2000000.00,\n    \"premiumType\": \"MONTHLY\",\n    \"holderAadhaar\": \"223456789012\",\n    \"isSmoker\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Purchase Policy - Motor (CUSTOMER)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/policies/purchase",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "policies",
+                                "purchase"
+                            ],
+                            "query": []
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"planId\": 4,\n    \"startDate\": \"2026-10-01\",\n    \"selectedCoverageAmount\": 300000.00,\n    \"premiumType\": \"ANNUAL\",\n    \"vehicleNumber\": \"MH01AB1234\",\n    \"isSmoker\": false\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Issue Policy (Admin/Agent/SuperAgent)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/policies/issue",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "policies",
+                                "issue"
+                            ],
+                            "query": []
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"customerId\": 3,\n    \"planId\": 1,\n    \"startDate\": \"2026-10-01\",\n    \"selectedCoverageAmount\": 1500000.00,\n    \"premiumType\": \"ANNUAL\",\n    \"holderAadhaar\": \"987654321098\",\n    \"agentId\": 2\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Policy By ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/policies/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "policies",
+                                "1"
+                            ],
+                            "query": []
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get All Policies (Admin/Agent)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/policies?page=0&size=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "policies"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get My Policies (CUSTOMER)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/policies/my?page=0&size=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "policies",
+                                "my"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Cancel Policy (Admin/SuperAgent)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/policies/1/cancel",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "policies",
+                                "1",
+                                "cancel"
+                            ],
+                            "query": []
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "💳 Payments (Razorpay)",
+            "item": [
+                {
+                    "name": "STEP 1 - Create Razorpay Order",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/payments/create-razorpay-order/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "payments",
+                                "create-razorpay-order",
+                                "1"
+                            ],
+                            "query": [],
+                            "description": "Returns razorpayOrderId, amount in paise, keyId. Paste razorpayOrderId into STEP 2."
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "STEP 2 - Verify Payment Signature",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/payments/verify-razorpay-payment",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "payments",
+                                "verify-razorpay-payment"
+                            ],
+                            "query": [],
+                            "description": "Verifies HMAC. On success: policy=ACTIVE, PremiumPayment=SUCCESS, email+SMS sent."
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"policyId\": 1,\n    \"razorpayOrderId\": \"order_XXXXXXXXXXXXXXXXXX\",\n    \"razorpayPaymentId\": \"pay_XXXXXXXXXXXXXXXXXX\",\n    \"razorpaySignature\": \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\",\n    \"paymentMode\": \"UPI\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Payment By ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/payments/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "payments",
+                                "1"
+                            ],
+                            "query": []
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get All Payments (Admin/Agent)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/payments?page=0&size=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "payments"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get My Payments (CUSTOMER)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/payments/my?page=0&size=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "payments",
+                                "my"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Payments By Policy",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/payments/policy/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "payments",
+                                "policy",
+                                "1"
+                            ],
+                            "query": []
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "⚕️ Claims",
+            "item": [
+                {
+                    "name": "File Claim - JSON Documents (CUSTOMER)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/claims",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "claims"
+                            ],
+                            "query": []
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"policyId\": 1,\n    \"claimAmount\": 150000.00,\n    \"claimReason\": \"Critical hospitalization for emergency surgery\",\n    \"incidentDate\": \"2026-09-01\",\n    \"documents\": [\n        {\"documentName\": \"Hospital Bill\",\"documentType\": \"PDF\",\"documentReference\": \"https://res.cloudinary.com/doc_bill_001\"},\n        {\"documentName\": \"Discharge Summary\",\"documentType\": \"PDF\",\"documentReference\": \"https://res.cloudinary.com/doc_summary_002\"}\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Claim By ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/claims/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "claims",
+                                "1"
+                            ],
+                            "query": []
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get All Claims (Admin/Agent)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/claims?page=0&size=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "claims"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get My Claims (CUSTOMER)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/claims/my?page=0&size=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "claims",
+                                "my"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Review - RECOMMENDED (Agent)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/claims/1/review",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "claims",
+                                "1",
+                                "review"
+                            ],
+                            "query": [],
+                            "description": "Agent can only set RECOMMENDED or UNDER_REVIEW. Standard AGENT must match product specialization."
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"recommendedStatus\": \"RECOMMENDED\",\n    \"remarks\": \"All documents verified. Claim amount is fully justified.\",\n    \"suggestedAmount\": 140000.00\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Review - UNDER_REVIEW (Agent)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/claims/1/review",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "claims",
+                                "1",
+                                "review"
+                            ],
+                            "query": []
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"recommendedStatus\": \"UNDER_REVIEW\",\n    \"remarks\": \"Need additional hospital records. Pending investigation.\",\n    \"suggestedAmount\": 150000.00\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Final Decision - APPROVE (Admin)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/claims/1/decision",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "claims",
+                                "1",
+                                "decision"
+                            ],
+                            "query": [],
+                            "description": "Admin only. Claim must be reviewed first. Amount deducted from remainingCoverage under DB lock."
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"finalDecisionStatus\": \"APPROVED\",\n    \"remarks\": \"Claim approved. Settlement within 5 business days.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Final Decision - REJECT (Admin)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/claims/1/decision",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "claims",
+                                "1",
+                                "decision"
+                            ],
+                            "query": []
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"finalDecisionStatus\": \"REJECTED\",\n    \"remarks\": \"Incident occurred before policy inception date.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Super Rule - Bulk Auto-Approve (Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/claims/super-rule-approve?productType=HEALTH&amountThreshold=100000",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "claims",
+                                "super-rule-approve"
+                            ],
+                            "query": [
+                                {
+                                    "key": "productType",
+                                    "value": "HEALTH"
+                                },
+                                {
+                                    "key": "amountThreshold",
+                                    "value": "100000"
+                                }
+                            ],
+                            "description": "Auto-approves all RECOMMENDED claims where claimAmount<=threshold for given productType."
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "📂 Claim History",
+            "item": [
+                {
+                    "name": "Get Claim Status History",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/claim-history/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "claim-history",
+                                "1"
+                            ],
+                            "query": [],
+                            "description": "Full audit trail of status transitions for a claim."
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "💬 Customer Queries",
+            "item": [
+                {
+                    "name": "Submit Query (Public)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/queries",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "queries"
+                            ],
+                            "query": [],
+                            "description": "No auth required."
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"fullName\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"subject\": \"Claim settlement timeline\",\n    \"message\": \"How long does the claim approval process take after agent review?\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get All Queries (Admin/Agent)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/queries?page=0&size=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "queries"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get My Queries",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/queries/my?page=0&size=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "queries",
+                                "my"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reply to Query (Agent/SuperAgent)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/queries/1/reply",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "queries",
+                                "1",
+                                "reply"
+                            ],
+                            "query": []
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"reply\": \"Claim settlements typically take 5-7 business days after agent review. You will receive email notifications at each stage.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ]
 }
